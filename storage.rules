@@ -1,0 +1,76 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isImageOrPdf() {
+      return request.resource.contentType.matches('(application/pdf|image/(jpeg|png|webp))');
+    }
+
+    // 1. CONTRATOS DE LOCACIÓN PRINCIPALES (Subidos en la invitación digital)
+    match /contracts/{rentalId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() 
+                   && request.resource.size <= 15 * 1024 * 1024
+                   && isImageOrPdf();
+      allow delete: if false;
+    }
+
+    // 2. ANEXOS DE CONSENTIMIENTO EXPRESO (LEY 25.326)
+    match /consent_annexes/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() 
+                   && request.resource.size <= 10 * 1024 * 1024
+                   && isImageOrPdf();
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 3. ACTAS BILATERALES DE RESTITUCIÓN DE INMUEBLE
+    match /restitution_acts/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() 
+                   && request.resource.size <= 10 * 1024 * 1024
+                   && isImageOrPdf();
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 4. ARCHIVOS TEMPORALES PARA VALIDACIÓN OCR (CREDENCIAL CUCIS / DNI)
+    match /temp_docs/{userId}/{fileName} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAuthenticated() 
+                   && request.auth.uid == userId
+                   && request.resource.size <= 10 * 1024 * 1024
+                   && isImageOrPdf();
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // 5. COMPROBANTES DE PAGO Y DISPUTAS (RECTIFICACIÓN - LEY 25.326)
+    match /rectificaciones/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+                   && request.resource.size <= 10 * 1024 * 1024
+                   && isImageOrPdf();
+      allow delete: if isAuthenticated();
+    }
+
+    match /disputes/{rentalId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+                   && request.resource.size <= 10 * 1024 * 1024
+                   && isImageOrPdf();
+      allow delete: if isAuthenticated();
+    }
+
+    // FOTOGRAFÍAS DE PROPIEDADES (INQUILIA BROKER)
+    match /properties/{propId}/{fileName} {
+      allow read: if true; // Lectura pública para catálogo e interesados
+      allow write: if request.auth != null 
+                   && request.resource.size <= 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if request.auth != null;
+    }
+  }
+}

@@ -1,0 +1,249 @@
+rules_version = '2';
+service cloud.firestore {
+match /databases/{database}/documents {
+
+function isAuthenticated() {
+return request.auth != null;
+}
+
+function isOwner(userId) {
+return isAuthenticated() && request.auth.uid == userId;
+}
+
+function getUserData() {
+let path = /databases/$(database)/documents/users/$(request.auth.uid);
+return exists(path) ? get(path).data : null;
+}
+
+function hasRole(roleName) {
+let uData = getUserData();
+return isAuthenticated() && uData != null && (
+(uData.keys().hasAll(['roles']) && roleName in uData.roles) ||
+(uData.keys().hasAll(['role']) && uData.role == roleName)
+);
+}
+
+// ==========================================
+// 1. INMOBILIARIAS (agencies)
+// ==========================================
+match /agencies/{agencyId} {
+allow read: if true; 
+
+allow create: if isAuthenticated() 
+&& request.resource.data.ownerUid == request.auth.uid;
+
+allow update: if isAuthenticated() && (
+resource.data.ownerUid == request.auth.uid 
+|| hasRole('AGENCY_OWNER')
+|| (
+hasRole('AGENCY_EMPLOYEE') 
+&& getUserData().get('agencyId', '') == agencyId
+&& request.resource.data.diff(resource.data).affectedKeys().hasOnly(['creditos'])
+&& request.resource.data.creditos == resource.data.creditos - 1
+)
+);
+
+allow delete: if false;
+}
+match /properties/{propId} {
+
+allow create: if isAuthenticated() && (
+hasRole('AGENCY_OWNER') ||
+hasRole('MATRICULADO_CUCIS') ||
+(hasRole('AGENCY_EMPLOYEE') && getUserData().get('agencyId', '') != '')
+);
+
+allow update: if isAuthenticated() && (
+hasRole('AGENCY_OWNER') ||
+(hasRole('AGENCY_EMPLOYEE') && getUserData().get('agencyId', '') == resource.data.agencyId)
+);
+
+allow delete: if isAuthenticated() && hasRole('AGENCY_OWNER');
+}
+
+// ==========================================
+// 2. BURÓ DE CRÉDITO LOCATIVO (verified_rentals)
+// ==========================================
+match /verified_rentals/{rentalId} {
+// Permite lectura pública de contratos registrados para censo y resolución de tokens
+allow read: if resource.data.status == 'PENDIENTE_REGISTRO'
+|| resource.data.status == 'EN_CURSO'
+|| resource.data.status == 'FINALIZADO'
+|| isAuthenticated();
+
+allow create: if isAuthenticated()
+&& (
+hasRole('AGENCY_OWNER') 
+|| hasRole('OPERADOR_INMOBILIARIO') 
+|| hasRole('MATRICULADO_CUCIS')
+|| (hasRole('AGENCY_EMPLOYEE') && getUserData().get('agencyId', '') != '')
+|| hasRole('LANDLORD')
+);
+
+allow update: if (
+// A. Aceptación de invitación preliminar por parte del inquilino
+resource.data.status == 'PENDIENTE_REGISTRO' &&
+request.resource.data.status == 'EN_CURSO'
+) || (
+// B. Inquilino ejerciendo Derecho de Rectificación / Réplica (Ley 25.326 Arts. 14 y 16)
+isAuthenticated() && (
+(getUserData().get('dni', '') != '' && (getUserData().get('dni', '') == resource.data.tenantDni || getUserData().get('dni', '') == resource.data.dni)) ||
+request.auth.uid == resource.data.tenantUid
+) &&
+request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dispute', 'rebuttal'])
+) || (
+// C. Gestión normal autenticada por Propietario o Inmobiliaria administradora
+isAuthenticated() && (
+request.auth.uid == resource.data.metadata.get('certifiedByUid', '') ||
+request.auth.uid == resource.data.metadata.get('createdBy', '') ||
+request.auth.uid == resource.data.propietarioUid ||
+(
+getUserData().get('agencyId', '') != '' &&
+getUserData().get('agencyId', '') == resource.data.metadata.get('agencyId', '')
+) ||
+(
+getUserData().get('dni', '') != '' &&
+getUserData().get('dni', '') == resource.data.propietarioDni
+)
+) && (
+!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+'scoreRentia',
+'reputationScore',
+'paymentCompliance'
+])
+)
+);
+
+// Inmutabilidad total de auditoría locativa
+allow delete: if false;
+}
+
+// ==========================================
+// 3. CALIFICACIONES Y DEVOLUCIONES (tenant_reviews)
+// ==========================================
+match /tenant_reviews/{reviewId} {
+allow read: if isAuthenticated();
+
+allow create: if isAuthenticated()
+&& hasRole('LANDLORD')
+&& !hasRole('AGENCY_OWNER')
+&& request.resource.data.authorDni == getUserData().get('dni', '')
+&& request.resource.data.authorDni != request.resource.data.intermediaryCucis;
+
+allow update, delete: if false;
+}
+
+// ==========================================
+// 4. ÍNDICES DE UNICIDAD (unique_indexes)
+// ==========================================
+match /unique_indexes/{indexId} {
+allow get: if isAuthenticated();
+allow list: if false;
+
+allow create: if isAuthenticated() 
+&& request.resource.data.uid == request.auth.uid
+&& request.resource.data.createdAt is string;
+
+allow update, delete: if false;
+}
+
+// ==========================================
+// 5. PERFILES DE USUARIO Y ROLES (users)
+// ==========================================
+match /users/{userId} {
+allow read: if isOwner(userId) || hasRole('AGENCY_OWNER');
+
+allow create: if isOwner(userId)
+&& request.resource.data.get('roles', ['LANDLORD']) == ['LANDLORD']
+&& request.resource.data.get('creditos', 0) == 0;
+
+allow update: if (
+isOwner(userId) && 
+(
+!request.resource.data.diff(resource.data).affectedKeys().hasAny(['creditos']) ||
+(request.resource.data.creditos <= resource.data.get('creditos', 0))
+) && 
+(
+!request.resource.data.diff(resource.data).affectedKeys().hasAny(['roles', 'role']) ||
+(
+('MATRICULADO_CUCIS' in resource.data.get('roles', []) || resource.data.get('role', '') == 'MATRICULADO_CUCIS') &&
+request.resource.data.role == 'AGENCY_OWNER' &&
+request.resource.data.roles.hasOnly(['AGENCY_OWNER', 'LANDLORD'])
+)
+)
+) || (
+hasRole('AGENCY_OWNER') && 
+resource != null && 
+request.resource.data.agencyId == getUserData().get('agencyId', request.auth.uid) &&
+!request.resource.data.diff(resource.data).affectedKeys().hasAny(['creditos'])
+);
+
+allow delete: if false;
+}
+
+// ==========================================
+// 6. AUDITORÍA INMUTABLE DE CONSULTAS (audit_queries)
+// ==========================================
+match /audit_queries/{auditId} {
+allow read: if isAuthenticated() && (
+resource.data.operatorUid == request.auth.uid || 
+resource.data.agencyId == request.auth.uid
+);
+
+allow create: if isAuthenticated() && request.resource.data.operatorUid == request.auth.uid;
+allow update, delete: if false;
+}
+
+// ==========================================
+// 7. LIBRO MAYOR DE CRÉDITOS (credit_transactions)
+// ==========================================
+match /credit_transactions/{txnId} {
+allow read: if isAuthenticated() && (
+resource.data.actorUid == request.auth.uid || 
+resource.data.agencyId == request.auth.uid
+);
+
+allow create: if isAuthenticated() && request.resource.data.actorUid == request.auth.uid;
+allow update, delete: if false;
+}
+
+// ==========================================
+// 8. INVENTARIO BROKER (properties)
+// ==========================================
+match /properties/{propId} {
+allow read: if true; 
+allow create: if isAuthenticated() && (
+hasRole('AGENCY_OWNER') ||
+hasRole('MATRICULADO_CUCIS') ||
+hasRole('AGENCY_EMPLOYEE') ||
+getUserData().get('agencyId', '') != ''
+);
+
+allow update: if isAuthenticated() && (
+resource.data.createdByUid == request.auth.uid ||
+resource.data.agencyId == request.auth.uid ||
+(getUserData().get('agencyId', '') != '' && getUserData().get('agencyId', '') == resource.data.agencyId) ||
+hasRole('AGENCY_OWNER') ||
+hasRole('MATRICULADO_CUCIS')
+);  
+allow delete: if isAuthenticated() && (
+resource.data.createdByUid == request.auth.uid ||
+resource.data.agencyId == request.auth.uid ||
+hasRole('AGENCY_OWNER') ||
+hasRole('MATRICULADO_CUCIS')
+);
+}
+
+// ==========================================
+// 9. LEADS Y POSTULANTES (leads)
+// ==========================================
+match /leads/{leadId} {
+allow read, write: if isAuthenticated() && (
+hasRole('AGENCY_OWNER') ||
+hasRole('MATRICULADO_CUCIS') ||
+(hasRole('AGENCY_EMPLOYEE') && getUserData().get('agencyId', '') != '')
+);
+}
+
+}
+}

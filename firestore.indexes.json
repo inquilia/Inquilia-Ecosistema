@@ -1,0 +1,77 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "verified_rentals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "invitationToken", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "verified_rentals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "dispute.status", "order": "ASCENDING" },
+        { "fieldPath": "dispute.submittedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "verified_rentals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "propietarioDni", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "verified_rentals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantDni", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "audit_queries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "operatorUid", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "credit_transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "actorUid", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "credit_transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agencyId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "properties",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sharedInNetwork", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "properties",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agencyId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

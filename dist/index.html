@@ -1,0 +1,2962 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-[#080C19]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inquilia - Ecosistema de Confianza e Inteligencia Locativa</title>
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230d1829' /><rect x='44' y='46' width='12' height='32' rx='6' fill='%23FFFFFF' /><path d='M 34 40 L 50 24 L 66 40' stroke='%2316c2a3' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none' /></svg>">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap');
+    
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden !important;
+    }
+
+    body {
+      font-family: 'Inter Tight', sans-serif;
+      background-color: #060913;
+      background-image: 
+      radial-gradient(at 0% 0%, rgba(22, 194, 163, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(0, 212, 255, 0.06) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    .glass-card {
+      background: rgba(10, 15, 30, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(22, 194, 163, 0.25);
+      box-shadow: 0 30px 60px -12px rgba(22, 194, 163, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .score-glow {
+      filter: drop-shadow(0 0 15px rgba(22, 194, 163, 0.45));
+    }
+    
+    .nav-indicator {
+      box-shadow: 0 0 12px #16c2a3;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 22, 42, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(22, 194, 163, 0.3);
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(22, 194, 163, 0.5);
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-Km6nDZNF.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-CXHxssQy.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-core-DYfgK2_N.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-7heGnbJ0.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-pdf-C0rzfHyS.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-qr-De7zA8GV.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-CeNTUK4z.css">
+</head>
+<body class="flex h-screen overflow-hidden text-slate-300 relative">
+
+  <div class="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none"></div>
+  <div class="absolute bottom-10 right-10 w-80 h-80 bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <!-- Overlay para dispositivos móviles -->
+  <div id="mobile-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+  <!-- Menú Lateral (Sidebar) -->
+  <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out w-64 bg-[#050811]/98 backdrop-blur-xl flex flex-col flex-shrink-0 border-r border-slate-900 z-50 shadow-2xl md:shadow-none">
+
+    <!-- Logo y Título Institucional -->
+    <div class="h-24 flex items-center px-6 border-b border-slate-900/60 justify-between">
+      <div class="flex items-center gap-3">
+        <svg class="w-10 h-10 shrink-0 shadow-lg shadow-[#16c2a3]/10 rounded-xl" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100" height="100" rx="24" fill="#0d1829" />
+          <rect x="44" y="46" width="12" height="32" rx="6" fill="#FFFFFF" />
+          <path d="M 34 40 L 50 24 L 66 40" stroke="#16c2a3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </svg>
+        <div class="flex flex-col justify-center">
+          <span class="text-[20px] font-black text-white tracking-[0.1em] bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-none">INQUILIA</span>
+          <span class="text-[7.5px] text-[#16c2a3] font-black uppercase tracking-[0.38em] leading-none mt-[4px] ml-[2px]">VERY-TRUST</span>
+        </div>
+      </div>
+      <!-- Botón de cierre móvil sincronizado con mobile-overlay -->
+      <button id="sidebar-close-btn" class="md:hidden text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Navegación Principal -->
+    <nav class="p-4 space-y-1.5 flex-1 overflow-y-auto">
+      <button type="button" id="nav-home" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <i data-lucide="home" class="w-4 h-4 shrink-0 text-[#16c2a3]"></i> 
+        <span>Home</span>
+      </button>
+
+      <button type="button" id="nav-search" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3"><i data-lucide="search" class="w-4 h-4 shrink-0"></i> Consultar Perfil</span>
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3]"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+
+      <button type="button" id="nav-history" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <i data-lucide="history" class="w-4 h-4 shrink-0"></i> Historial
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3]"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+
+      <button type="button" id="nav-contracts" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <i data-lucide="folder-open" class="w-4 h-4 shrink-0"></i> <span class="whitespace-nowrap">Contratos</span>
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3]"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+
+      <button type="button" id="nav-expirations" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3 whitespace-nowrap"><i data-lucide="calendar-clock" class="w-4 h-4 shrink-0"></i> Vencimientos</span>
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3]"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+
+      <button type="button" id="nav-properties" class="hidden w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3 whitespace-nowrap">
+          <i data-lucide="building-2" class="w-4 h-4 shrink-0 text-[#16c2a3]"></i> Propiedades
+        </span>
+        <span class="text-[8.5px] px-1.5 py-0.5 rounded font-black uppercase bg-[#16c2a3]/10 text-[#16c2a3] border border-[#16c2a3]/20">
+          Broker
+        </span>
+      </button>    
+
+      <button type="button" id="nav-leads" class="hidden w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3 whitespace-nowrap">
+          <i data-lucide="users" class="w-4 h-4 shrink-0 text-[#16c2a3]"></i> Interesados
+        </span>
+        <span class="text-[8.5px] px-1.5 py-0.5 rounded font-black uppercase bg-[#16c2a3]/10 text-[#16c2a3] border border-[#16c2a3]/20">
+          CRM
+        </span>
+      </button>
+
+      <button type="button" id="nav-reports" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <i data-lucide="pie-chart" class="w-4 h-4 shrink-0"></i> <span class="whitespace-nowrap">Reportes</span>
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3]"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+
+      <button type="button" id="nav-portal" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3">
+          <i data-lucide="compass" class="w-4 h-4 shrink-0 text-[#16c2a3]"></i> Buscar Inmuebles
+        </span>
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3]"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+
+      <button type="button" id="nav-account" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3 whitespace-nowrap"><i data-lucide="credit-card" class="w-4 h-4 shrink-0 text-[#16c2a3]"></i> Planes y Precios</span>
+      </button>
+
+      <button type="button" id="nav-settings" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.03] font-semibold transition-all duration-300 cursor-pointer">
+        <span class="flex items-center gap-3 whitespace-nowrap"><i data-lucide="settings" class="w-4 h-4 shrink-0"></i> Configuración</span>
+        <span class="auth-lock-icon text-[10px] text-[#16c2a3] hidden"><i data-lucide="lock" class="w-3.5 h-3.5"></i></span>
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-900 bg-slate-950/40 space-y-2">
+      <div class="flex items-center gap-3 text-xs">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+        <div class="text-[10px] leading-tight">
+          <p class="font-bold text-slate-200" id="sidebar-connection-id">ID: INVITADO</p>
+          <p class="text-slate-500">Conexión Segura DGR/BCRA</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative w-full max-w-full overflow-x-hidden">
+
+    <header class="bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-30 px-4 md:px-8 py-2.5 flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-2 w-full">
+        <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white shrink-0">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+
+        <div class="hidden md:block"></div>
+
+        <div id="topbar-controls" class="flex items-center justify-end gap-2 sm:gap-4 ml-auto flex-wrap">
+          <button type="button" id="btn-goto-credits" title="Gestionar planes y recargar créditos" class="flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 border border-[#16c2a3]/40 px-2.5 py-1 rounded-lg shrink-0 cursor-pointer transition-all">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Créditos</span>
+            <span id="header-credits" class="text-xs font-black text-[#16c2a3]">0</span>
+            <i data-lucide="plus-circle" class="w-3 h-3 text-[#16c2a3]"></i>
+          </button>
+
+          <div id="context-selector-container" class="flex items-center shrink-0"></div>
+
+          <div id="user-profile-trigger" class="flex items-center gap-2 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg cursor-pointer transition-all shrink-0">
+            <div id="user-avatar-initials" class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[11px] text-slate-400 shrink-0">
+              <i data-lucide="user" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="flex flex-col text-right leading-tight">
+              <span id="topbar-user-name" class="text-[11px] font-bold text-white max-w-[110px] sm:max-w-[160px] truncate">Iniciar sesión</span>
+              <span id="topbar-user-subtitle" class="text-[8px] text-amber-500 font-bold uppercase tracking-widest">SESIÓN NO INICIADA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full pt-1.5 border-t border-slate-900/80 flex items-center">
+        <h1 id="topbar-title" class="text-sm md:text-base font-black text-white uppercase tracking-wider truncate">
+          Home
+        </h1>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth w-full relative">
+      <div class="max-w-6xl mx-auto space-y-8">
+
+        <div id="toast-msg" class="hidden px-4 py-3 rounded-lg shadow-sm flex items-start gap-3 transition-all z-50 absolute top-5 left-1/2 -translate-x-1/2">
+          <div>
+            <p id="toast-title" class="text-sm font-bold"></p>
+            <p id="toast-desc" class="text-xs mt-0.5 opacity-90"></p>
+          </div>
+        </div>
+
+        <!-- VISTA: AUTENTICACIÓN (LOGIN POR DNI) -->
+        <div id="view-auth" class="hidden max-w-sm mx-auto space-y-6 animate-fade-in mt-10">
+          <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl">
+            <div class="space-y-6">
+              <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-[#16c2a3]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#16c2a3]/20">
+                  <i data-lucide="shield-check" class="w-8 h-8 text-[#16c2a3]"></i>
+                </div>
+                <h2 class="text-xl font-black text-white uppercase tracking-tight">Acceso a Inquilia</h2>
+                <p class="text-xs text-slate-400 mt-1">Ingresá tu DNI y contraseña para operar en red.</p>
+              </div>
+
+              <form id="form-login" class="space-y-4 text-xs">
+                <div>
+                  <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI (Documento)</label>
+                  <input 
+                  type="text" 
+                  id="login-dni" 
+                  required 
+                  inputmode="numeric" 
+                  pattern="[0-9]*" 
+                  autocomplete="username"
+                  class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none transition-colors" 
+                  placeholder="Ej: 28633912">
+                </div>
+                
+                <div>
+                  <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Contraseña</label>
+                  <div class="relative">
+                    <input 
+                    type="password" 
+                    id="login-password" 
+                    required 
+                    autocomplete="current-password"
+                    class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none transition-colors pr-10" 
+                    placeholder="••••••••">
+                    <button 
+                    type="button" 
+                    id="toggle-login-password" 
+                    aria-label="Mostrar contraseña" 
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer focus:outline-none">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button 
+              type="submit" 
+              class="w-full bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black py-3.5 rounded-xl uppercase tracking-wider transition-colors shadow-lg shadow-[#16c2a3]/20 mt-2 cursor-pointer">
+              Iniciar Sesión
+            </button>
+          </form> 
+
+          <div class="text-center">
+            <button type="button" id="btn-show-recovery" class="text-[10px] text-[#16c2a3] hover:underline cursor-pointer font-bold">
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
+          <div id="view-recovery-container" class="hidden pt-4 border-t border-slate-800 space-y-3">
+            <div class="text-left">
+              <p class="text-[10px] uppercase font-bold text-slate-300">Recuperar Acceso</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Ingresá tu DNI para recibir instrucciones en tu correo.</p>
+            </div>
+            <form id="form-recovery" class="space-y-3 text-xs">
+              <input 
+              type="text" 
+              id="recovery-dni" 
+              required 
+              inputmode="numeric" 
+              pattern="[0-9]*"
+              class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none transition-colors" 
+              placeholder="Número de DNI">
+              <div class="flex gap-2">
+                <button 
+                type="submit" 
+                class="flex-1 bg-slate-800 hover:bg-slate-700 text-[#16c2a3] border border-[#16c2a3]/40 font-bold py-2.5 rounded-xl uppercase tracking-wider transition-colors text-[10px] cursor-pointer">
+                Enviar
+              </button>
+              <button 
+              type="button" 
+              id="btn-cancel-recovery" 
+              class="px-3 bg-slate-900 text-slate-400 hover:text-white py-2.5 rounded-xl border border-slate-800 text-[10px] cursor-pointer">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="pt-6 border-t border-slate-800 text-center">
+        <p class="text-[12px] text-slate-400 mb-3">¿No tenés cuenta registrada en Inquilia?</p>
+        <button id="btn-goto-onboarding" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl border border-slate-700 uppercase tracking-wider transition-colors text-[10px] flex items-center justify-center gap-2 cursor-pointer">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Registrar Identidad / Alta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VISTA: ONBOARDING / REGISTRO CON COMPLIANCE LEY 25.326 -->
+<div id="view-onboarding" class="hidden max-w-3xl mx-auto space-y-6 animate-fade-in text-left">
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 space-y-6">
+    <div class="border-b border-slate-900 pb-4">
+      <span class="text-[9px] uppercase font-black text-[#00cda5] bg-[#00cda5]/10 px-2.5 py-1 rounded-full border border-[#00cda5]/30">Compliance Ley 25.326 & Habeas Data</span>
+      <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Registro de Identidad y Alta</h2>
+      <p class="text-xs text-slate-400 mt-1">Seleccione su perfil operativo. Las inmobiliarias requieren CUCIS obligatorio; los particulares requieren validación de mayoría de edad y DNI.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <button type="button" onclick="selectOnboardingRole('PARTICULAR_PROPIETARIO')" id="role-btn-part" class="p-4 rounded-xl border text-left transition-all bg-indigo-600/15 border-indigo-500/40 text-white cursor-pointer">
+        <div class="flex items-center gap-2 font-bold text-xs uppercase"><i data-lucide="user" class="w-4 h-4 text-indigo-400"></i> Particular / Propietario</div>
+      </button>
+      <button type="button" onclick="selectOnboardingRole('MATRICULADO_CUCIS')" id="role-btn-mat" class="p-4 rounded-xl border text-left transition-all bg-slate-950/40 border-slate-850 text-slate-400 hover:text-white cursor-pointer">
+       <div class="flex items-center gap-2 font-bold text-xs uppercase"><i data-lucide="award" class="w-4 h-4 text-[#00cda5]"></i> Profesional Matriculado CUCIS</div>
+     </button>
+   </div>
+
+   <form id="form-onboarding" class="space-y-6 text-xs">
+     <div class="space-y-4">
+      <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-slate-900 pb-2">1. Datos Personales Obligatorios</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre Completo o Razón Social *</label>
+        <input type="text" id="onb-nombre" required placeholder="Ej: Roberto Sánchez" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI (Credencial de Acceso) *</label>
+        <input type="text" id="onb-cuit" required inputmode="numeric" placeholder="Ej: 28633912" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+     <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Teléfono Móvil (WhatsApp) *</label>
+      <input type="text" id="onb-movil" required placeholder="+54 9 387 4123456" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+    </div>
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Email de Contacto *</label>
+      <input type="email" id="onb-email" required placeholder="usuario@correo.com.ar" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+   <div>
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Clave Alfanumérica (Mínimo 6 caracteres) *</label>
+    <div class="relative">
+      <input type="password" id="onb-password" required minlength="6" placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none font-mono pr-10">
+      <button type="button" id="toggle-onb-password" aria-label="Mostrar contraseña" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer focus:outline-none">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+  <div>
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Condición Fiscal AFIP *</label>
+    <select id="onb-fiscal" required class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+      <option value="Monotributo">Monotributista</option>
+      <option value="Responsable Inscripto">Responsable Inscripto</option>
+      <option value="Empleado">Empleado</option>
+      <option value="Exento">Exento / Consumidor Final</option>         
+    </select>
+  </div>
+</div>
+</div>
+
+<div id="role-container-particular" class="space-y-4 pt-4 border-t border-slate-900">
+  <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-slate-900 pb-2">2. Verificación de Mayoría de Edad y DNI (Obligatorio)</h3>
+  <div class="space-y-3">
+    <label class="flex items-center gap-3 cursor-pointer bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+      <input type="checkbox" id="onb-is-adult" required class="w-4 h-4 text-[#16c2a3] rounded bg-slate-900">
+      <span class="text-xs font-bold text-white">Declaro bajo juramento ser mayor de 18 años y poseer capacidad legal para contratar.</span>
+    </label>
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fotografía del Frente del DNI (Validación de Identidad) *</label>
+      <input type="file" id="onb-dni-file" accept="image/jpeg,image/png" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-semibold file:bg-[#16c2a3]/10 file:text-[#16c2a3] cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl">
+    </div>
+  </div>
+</div>
+
+<div id="role-container-inmobiliaria" class="space-y-4 pt-4 border-t border-slate-900 hidden">
+  <h3 class="text-xs font-bold text-[#00cda5] uppercase tracking-widest border-b border-slate-900 pb-2">2. Verificación Documental por OCR (CUCIS) *</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre de Inmobiliaria / Razón Social *</label>
+      <input type="text" id="onb-fantasia" placeholder="Ej: Salta Inmobiliaria" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+    </div>
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">CUCIS M.P. *</label>
+      <input type="text" id="onb-nromatricula" inputmode="numeric" pattern="[0-9]*" placeholder="Ej: 542" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl text-white focus:outline-none">
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fotografía del Frente del DNI *</label>
+      <input type="file" id="onb-mat-dni-file" accept="image/jpeg,image/png" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-semibold file:bg-[#16c2a3]/10 file:text-[#16c2a3] cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl">
+    </div>
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fotografía de la Credencial CUCIS *</label>
+      <input type="file" id="onb-credential-file" accept="image/jpeg,image/png" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-semibold file:bg-[#16c2a3]/10 file:text-[#16c2a3] cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl">
+    </div>
+  </div>
+</div>
+
+<div class="space-y-3 pt-4 border-t border-slate-900 bg-slate-950/40 p-4 rounded-xl border border-slate-800">
+  <h3 class="text-xs font-bold text-[#16c2a3] uppercase tracking-widest flex items-center gap-1.5">
+    <i data-lucide="shield-alert" class="w-4 h-4"></i> Declaración de Consentimiento Expreso e Informado (Ley N° 25.326)
+  </h3>
+  <p class="text-[11px] text-slate-400 leading-relaxed text-justify">
+    Al marcar esta casilla y registrarme en la plataforma INQUILIA, presto mi consentimiento expreso, libre e informado, de conformidad con los artículos 5, 6 y 11 de la Ley N° 25.326 de Protección de Datos Personales, para que mis datos sean almacenados de forma cifrada en la red.
+  </p>
+  <label class="flex items-start gap-3 cursor-pointer pt-2">
+    <input type="checkbox" id="onb-consent-checkbox" required class="w-4 h-4 mt-0.5 text-[#16c2a3] border-slate-700 rounded bg-slate-900 focus:ring-0">
+    <span class="text-xs font-bold text-white leading-tight">Comprendo, acepto y otorgo mi consentimiento expreso e informado *</span>
+  </label>
+</div>
+
+<div class="pt-4 border-t border-slate-900">
+  <button type="submit" class="w-full bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer">
+    Completar Registro y Homologar Cuenta en la Red
+  </button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- VISTA: PANEL PRINCIPAL (DASHBOARD) -->
+<div id="view-home" class="space-y-6 md:space-y-8 animate-fade-in">
+  <h3 class="text-xl font-bold text-white">Panel Principal</h3>
+
+  <!-- FILA 1: SCORE DE MORA Y ALQUILERES DE REFERENCIA -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- 1. Score de Mora Provincial (1 columna) -->
+    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border border-slate-800 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-900 pb-3">
+        <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-[#16c2a3]"></i> Score de Mora Provincial
+        </h3>
+        <span class="text-[9px] text-[#16c2a3] bg-[#16c2a3]/10 px-2 py-0.5 rounded-full font-bold">Consolidado</span>
+      </div>
+      <div class="py-6 text-center">
+        <p class="text-3xl md:text-4xl font-black text-white tracking-tight" id="provincial-score-value">84.2%</p>
+        <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">Cumplimiento a término (Salta)</p>
+      </div>
+      <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-900 text-[11px] text-slate-400">
+        Muestra estadística anónima basada en registros fácticos del buró. Sin exposición de datos personales (Ley 25.326).
+      </div>
+    </div>
+
+    <!-- 2. Alquileres de Referencia (2 columnas) -->
+    <div class="lg:col-span-2 glass-card rounded-2xl p-6 flex flex-col justify-between border border-slate-800 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-900 pb-3">
+        <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="trending-up" class="w-4 h-4 text-indigo-400"></i> Alquileres de Referencia - Salta Capital
+        </h3>
+        <span class="text-[9px] text-slate-400 uppercase">Último Trimestre</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+        <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-900 text-center">
+          <p class="text-[10px] text-slate-500 uppercase font-bold">Monoambiente</p>
+          <p class="text-lg font-black text-white mt-1" id="ref-price-mono">$0</p>
+          <p class="text-[9px] text-emerald-400 mt-0.5" id="ref-sub-mono">Promedio real de contratos</p>
+        </div>
+        <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-900 text-center">
+          <p class="text-[10px] text-slate-500 uppercase font-bold">1 Dormitorio</p>
+          <p class="text-lg font-black text-white mt-1" id="ref-price-1dorm">$0</p>
+          <p class="text-[9px] text-emerald-400 mt-0.5" id="ref-sub-1dorm">Promedio real de contratos</p>
+        </div>
+        <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-900 text-center">
+          <p class="text-[10px] text-slate-500 uppercase font-bold">2 Dormitorios</p>
+          <p class="text-lg font-black text-white mt-1" id="ref-price-2dorm">$0</p>
+          <p class="text-[9px] text-emerald-400 mt-0.5" id="ref-sub-2dorm">Promedio real de contratos</p>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-500 italic">Valores ponderados del censo locativo de contratos registrados en la plataforma.</p>
+    </div>
+
+  </div> <!-- CIERRE DE LA FILA 1 -->
+
+  <!-- FILA 2: CALCULADORA FIRA Y NORMATIVAS LOCALES -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- 3. Calculadora de Alquileres FIRA (2 columnas) -->
+    <div class="lg:col-span-2 glass-card rounded-2xl p-4 md:p-6 flex flex-col justify-between overflow-hidden border border-slate-800 shadow-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-900 pb-3 mb-4 gap-2">
+        <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="calculator" class="w-4 h-4 text-indigo-400"></i> Calculadora de Alquileres Oficial FIRA
+        </h3>
+      </div>
+      <div class="w-full flex justify-center bg-slate-950/30 rounded-xl p-2 md:p-4 border border-slate-900/60 overflow-hidden">
+        <iframe
+        title="Calculadora de alquileres FIRA"
+        src="https://arquiler.com/mini?theme=light&backgroundColor=ffffff"
+        width="100%"
+        height="680"
+        class="rounded-lg shadow-2xl w-full"
+        style="border: none; overflow: hidden;">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- 4. Normativas Locales (1 columna) -->
+  <div class="lg:col-span-1 glass-card rounded-2xl p-6 flex flex-col border border-slate-800 shadow-xl">
+    <div class="space-y-6">
+      <div class="border-b border-slate-900 pb-3">
+        <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="info" class="w-4 h-4 text-indigo-400"></i> Normativas Locales (Salta)
+        </h3>
+        <p class="text-[10px] text-slate-500 mt-1">Manual de compliance legal para inmobiliarias y propietarios.</p>
+      </div>
+      
+      <div class="space-y-4 text-xs">
+        <div class="p-4 bg-slate-950/30 border border-slate-900 rounded-xl">
+          <p class="font-bold text-indigo-300 flex items-center gap-1.5">
+            <i data-lucide="scale" class="w-3.5 h-3.5"></i> DNU 70/2023 y Moneda
+          </p>
+          <p class="text-slate-400 mt-1.5 leading-relaxed text-[11px]">
+            La moneda y la frecuencia de actualización se rigen por absoluta libertad contractual de las partes. El ICL y el IPC siguen siendo recomendados para evitar disputas de solvencia.
+          </p>
+        </div>
+        
+        <div class="p-4 bg-slate-950/30 border border-slate-900 rounded-xl">
+          <p class="font-bold text-indigo-300 flex items-center gap-1.5">
+            <i data-lucide="percent" class="w-3.5 h-3.5"></i> Sellado Fiscal Salta
+          </p>
+          <p class="text-slate-400 mt-1.5 leading-relaxed text-[11px]">
+            El impuesto de sellos provincial para contratos de alquiler con destino habitacional es del 1% sobre el total. Se gestiona y timbra directamente ante la DGR Salta.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div> 
+
+</div> 
+
+<!-- VISTA: CONSULTAR PERFIL -->
+<div id="view-search" class="hidden space-y-6 animate-fade-in max-w-4xl mx-auto text-left">
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="border-b border-slate-900 pb-4">
+      <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30">Buró Verificado Ley 25.326</span>
+      <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Consultar Perfil Locativo</h2>
+      <p class="text-xs text-slate-400 mt-1">Ingresá el DNI del inquilino o garante para consultar su comportamiento fáctico y score en la red.</p>
+    </div>
+
+    <div id="search-form-container">
+      <form id="form-search" class="space-y-4 text-xs">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="flex-1">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI a Consultar *</label>
+            <input type="text" id="search-dni-input" required inputmode="numeric" pattern="[0-9]*" placeholder="Ej: 30444555" 
+            class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:border-[#16c2a3] focus:outline-none">
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full sm:w-auto bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2">
+              <i data-lucide="search" class="w-4 h-4"></i> Consultar Perfil
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div id="search-results-container" class="hidden pt-6 border-t border-slate-900 space-y-4">
+
+      <!-- BARRA DE NAVEGACIÓN Y RETORNO CONTEXTUAL (SOLO VISIBLE DESDE HISTORIAL) -->
+      <div id="report-nav-bar" class="hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl">
+        <button type="button" onclick="volverAlHistorial()" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4 text-[#16c2a3]"></i>
+          Volver al Historial
+        </button>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Informe recuperado de auditoría (Vigencia 30 días · Sin cargo)</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Resultado de la Consulta</h3>
+      </div>
+
+      <!-- CONTENEDOR OBLIGATORIO DONDE SE INYECTA EL INFORME -->
+      <div id="search-result-content" class="bg-slate-950/40 border border-slate-800 rounded-xl p-5 space-y-4"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VISTA: HISTORIAL DE CONSULTAS -->
+<div id="view-history" class="hidden space-y-6 animate-fade-in max-w-4xl mx-auto text-left">
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="border-b border-slate-900 pb-4">
+      <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30">Auditoría y Trazabilidad</span>
+      <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Historial de Consultas</h2>
+      <p class="text-xs text-slate-400 mt-1">Registro de búsquedas realizadas en el buró con su respectiva vigencia de 30 días.</p>
+    </div>
+
+    <div id="history-results-container" class="space-y-4"></div>
+  </div>
+</div>
+
+<!-- VISTA: CARGA Y EMISIÓN DE CERTIFICADOS -->
+<div id="view-certify" class="hidden space-y-6 animate-fade-in max-w-3xl mx-auto text-left">
+  <div class="glass-card rounded-2xl p-5 md:p-8 border border-slate-800 space-y-6 shadow-2xl">
+
+    <div class="border-b border-slate-900 pb-4 flex justify-between items-center">
+      <div>
+        <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30">Compliance Ley 25.326 & Habeas Data</span>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Carga y Emisión de Certificados</h2>
+      </div>
+      <div id="cert-step-counter" class="text-xs font-mono text-slate-400">
+        Paso <span id="cert-current-step" class="text-[#16c2a3] font-bold">1</span> de <span id="cert-total-steps">1</span>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-400 leading-relaxed">
+      De acuerdo con las directivas de la AAIP, la recolección de información debe ser fáctica, numérica y documentada. Queda prohibida la carga de valoraciones subjetivas.
+    </p>
+
+    <div id="certify-pending-contracts-container" class="hidden space-y-3 mb-6 p-4 rounded-xl bg-slate-950/70 border border-[#16c2a3]/30">
+      <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+        <h3 class="text-xs font-bold text-[#16c2a3] uppercase tracking-widest flex items-center gap-2">
+          <i data-lucide="building" class="w-4 h-4"></i> Inmuebles en Curso (Listos para Certificar)
+        </h3>
+        <span class="text-[10px] text-slate-500">Emití el certificado directo sin volver a cargar datos</span>
+      </div>
+      <div id="certify-pending-contracts-list" class="grid grid-cols-1 gap-3 pt-2"></div>
+    </div>
+
+    <form id="form-certify" class="space-y-6 text-xs">
+
+      <div id="cert-step-1" class="space-y-6">
+
+        <div class="space-y-2">
+          <label class="block text-[10px] uppercase font-bold text-slate-400">Tipo de Gestión *</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label id="label-mode-ongoing" class="flex items-start gap-3 p-3.5 rounded-xl border border-[#16c2a3]/50 bg-[#16c2a3]/10 cursor-pointer transition-all">
+              <input type="radio" name="cert-mode" value="ONGOING" checked onchange="toggleCertMode('ONGOING')" class="mt-0.5 text-[#16c2a3] focus:ring-0">
+              <div>
+                <span class="text-xs font-bold text-white block">Contrato Vigente (Inicio)</span>
+                <span class="text-[10px] text-slate-400 block mt-0.5">Comienza hoy o está en curso. Monitorea vencimientos y aumentos en tiempo real.</span>
+              </div>
+            </label>
+
+            <label id="label-mode-retroactive" class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer transition-all hover:border-slate-700">
+              <input type="radio" name="cert-mode" value="RETROACTIVE" onchange="toggleCertMode('RETROACTIVE')" class="mt-0.5 text-[#16c2a3] focus:ring-0">
+              <div>
+                <span class="text-xs font-bold text-slate-300 block">Locación Previa / Concluida</span>
+                <span class="text-[10px] text-slate-500 block mt-0.5">El contrato ya terminó. Asienta el comportamiento histórico y emite Score para el Buró.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-slate-900 pb-2">1. Identificación y Respaldo Legal</h3>
+
+        <!-- UBICACIÓN Y TIPOLOGÍA (CENSO) -->
+        <div class="space-y-3 p-3.5 bg-slate-950/40 rounded-xl border border-slate-800">
+          <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider block">Ubicación y Tipología del Inmueble</span>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Provincia *</label>
+              <select id="cert-province" required class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+                <option value="Salta" selected>Salta</option>
+                <option value="Buenos Aires">Buenos Aires</option>
+                <option value="CABA">CABA</option>
+                <option value="Córdoba">Córdoba</option>
+                <option value="Santa Fe">Santa Fe</option>
+                <option value="Mendoza">Mendoza</option>
+                <option value="Tucumán">Tucumán</option>
+                <option value="Jujuy">Jujuy</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Localidad / Ciudad *</label>
+              <input type="text" id="cert-city" required placeholder="Ej: Salta Capital" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Barrio / Zona *</label>
+              <input type="text" id="cert-neighborhood" required placeholder="Ej: Centro / Tres Cerritos" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipología *</label>
+              <select id="cert-property-type" required class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+                <option value="Monoambiente">Monoambiente</option>
+                <option value="1 Dormitorio" selected>1 Dormitorio / 2 Ambientes</option>
+                <option value="2 Dormitorios">2 Dormitorios / 3 Ambientes</option>
+                <option value="3 Dormitorios">3 Dormitorios / 4 Ambientes</option>
+                <option value="Casa">Casa</option>
+                <option value="Duplex">Dúplex / PH</option>
+                <option value="Local Comercial">Local Comercial / Oficina</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-12 gap-2">
+            <div class="col-span-12 sm:col-span-6">
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Calle / Avenida *</label>
+              <input type="text" id="cert-street" required placeholder="Ej: Av. Belgrano" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+            </div>
+            <div class="col-span-4 sm:col-span-2">
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Número *</label>
+              <input type="text" id="cert-number" required placeholder="1240" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+            </div>
+            <div class="col-span-4 sm:col-span-2">
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Piso</label>
+              <input type="text" id="cert-floor" placeholder="3°" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+            </div>
+            <div class="col-span-4 sm:col-span-2">
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Depto</label>
+              <input type="text" id="cert-apartment" placeholder="B" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Nombre y DNI del Propietario alineados a la par -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div>
+           <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre del Propietario *</label>
+           <input type="text" id="cert-owner-name" placeholder="Ej: Juan Pérez" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+         </div>  
+         <div>
+           <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI del Propietario / Locador *</label>
+           <input type="text" id="cert-owner-dni" required inputmode="numeric" placeholder="DNI del titular" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+         </div>
+       </div>
+
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre y Apellido (Inquilino) *</label>
+          <input type="text" id="cert-name" required placeholder="Ej: Lucas Díaz" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI del Inquilino *</label>
+          <input type="text" id="cert-dni" required inputmode="numeric" placeholder="Ej: 30444555" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Monto Alquiler Mensual (ARS) *</label>
+          <input type="number" id="cert-amount" required min="0" placeholder="Ej: 600000" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha Inicio *</label>
+          <input 
+          type="date" 
+          id="cert-start" 
+          required 
+          style="color-scheme: dark;" 
+          class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha Fin *</label>
+          <input 
+          type="date" 
+          id="cert-end" 
+          required 
+          style="color-scheme: dark;" 
+          class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>
+          <p class="font-bold text-white">Anexo de Consentimiento Obligatorio</p>
+          <p class="text-[10px] text-slate-400">Descargue el modelo oficial conforme Ley 25.326, hágalo firmar por el locatario y adjunte la fotografía.</p>
+        </div>
+        <a href="/templates/anexo_consentimiento.doc" download="Anexo_Consentimiento_Inquilia.doc" class="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#16c2a3] border border-emerald-500/20 rounded-xl text-[10px] font-bold uppercase transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar Anexo (.doc)
+        </a>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fotografía del Anexo Firmado (JPG/PNG) *</label>
+        <input type="file" id="cert-annex-file" required accept="image/jpeg,image/png" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-semibold file:bg-[#16c2a3]/10 file:text-[#16c2a3] cursor-pointer bg-slate-950/40 border border-slate-800 rounded-xl">
+        <p class="text-[9px] text-slate-500">Debe visualizarse la firma del locatario que autoriza el tratamiento y retención legal fáctica.</p>
+      </div>
+
+      <div class="pt-4 border-t border-slate-900 flex justify-end">
+        <button type="button" id="btn-next-step" class="bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black px-6 py-3 rounded-xl uppercase tracking-wider transition-all shadow-lg cursor-pointer">
+          Registrar Contrato Activo
+        </button>
+      </div>
+    </div>
+
+    <div id="cert-step-2" class="hidden space-y-6">
+
+      <div id="cert-step-2-active-contract"></div>
+
+      <!-- Formulario existente del Paso 2 -->
+      <div class="border-b border-slate-800 pb-3">
+        <h3 class="text-base font-black text-white tracking-wide text-[#16c2a3]">
+          2. COMPORTAMIENTO, MORA Y CONSERVACIÓN
+        </h3>
+        <p class="text-xs text-slate-400 mt-1">
+          Indicá el comportamiento fáctico del locatario durante la vigencia del contrato para computar el Score Rentia.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Meses abonados a término *</label>
+          <input type="number" id="cert-ontime" min="0" placeholder="Ej: 12" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Meses con mora técnica *</label>
+          <input type="number" id="cert-late" min="0" placeholder="Ej: 0" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nivel de Conservación del Inmueble *</label>
+          <select id="cert-conservation" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+            <option value="Excelente">Excelente (Sin detalles)</option>
+            <option value="Bueno" selected>Bueno (Desgaste habitual)</option>
+            <option value="Daños Documentados">Daños documentados en acta de egreso</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Depósito Retenido o Deuda Activa (ARS)</label>
+          <input type="number" id="cert-debt-amount" min="0" placeholder="Ej: 0" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-[#16c2a3]/50">
+        </div>
+      </div>
+
+      <div class="mt-4 p-4 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
+       <div class="flex items-center justify-between">
+         <label class="block text-xs font-bold text-slate-300">
+           Acta de Restitución y Entrega de Llaves
+         </label>
+         <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Optativo · Respaldo Plurilateral
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-400">
+        Si poseés el acta de desocupación rubricada por ambas partes y testigos, adjuntala aquí. Constituye prueba fáctica inoponible sobre el estado del inmueble y saldos acordados (Ley 25.326).
+      </p>
+      <input type="file" id="cert-restitution-file" accept="image/*,.pdf" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#16c2a3]/10 file:text-[#16c2a3] file:font-bold cursor-pointer">
+    </div>  
+
+    <div class="pt-4 border-t border-slate-900 flex justify-between">
+      <button type="button" id="btn-prev-step" class="bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold px-6 py-3 rounded-xl uppercase tracking-wider transition-all cursor-pointer">
+        ← Volver
+      </button>
+      <button type="submit" class="bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black px-8 py-3 rounded-xl uppercase tracking-wider transition-all shadow-lg cursor-pointer">
+        Finalizar y Registrar en Red
+      </button>
+    </div>
+  </div>
+
+</form>
+</div>
+</div>
+
+<!-- VISTA: VENCIMIENTOS Y CONTROL DE CICLO LOCATIVO -->
+<div id="view-expirations" class="hidden space-y-6 animate-fade-in max-w-5xl mx-auto text-left">
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+      <div>
+        <span class="text-[9px] uppercase font-black text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/30">Gestión Temporal de Cartera</span>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Panel de Vencimientos y Renovaciones</h2>
+        <p class="text-xs text-slate-400 mt-1">Control de plazos legales de finalización, preavisos de no renovación y alertas de caducidad.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-rose-950/20 border border-rose-900/40 p-4 rounded-xl">
+        <div class="flex justify-between items-center">
+          <span class="text-[10px] uppercase font-bold text-rose-400">Próximos 30 Días</span>
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+        </div>
+        <span id="exp-count-30" class="text-2xl font-black text-rose-300 mt-1 block">0</span>
+        <span class="text-[10px] text-rose-400/80 mt-0.5 block">Atención crítica / Preaviso urgente</span>
+      </div>
+
+      <div class="bg-amber-950/20 border border-amber-900/40 p-4 rounded-xl">
+        <div class="flex justify-between items-center">
+          <span class="text-[10px] uppercase font-bold text-amber-400">31 a 60 Días</span>
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+        </div>
+        <span id="exp-count-60" class="text-2xl font-black text-amber-300 mt-1 block">0</span>
+        <span class="text-[10px] text-amber-400/80 mt-0.5 block">Ventana de negociación formal</span>
+      </div>
+
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <div class="flex justify-between items-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">61 a 90 Días</span>
+          <span class="w-2 h-2 rounded-full bg-slate-600"></span>
+        </div>
+        <span id="exp-count-90" class="text-2xl font-black text-white mt-1 block">0</span>
+        <span class="text-[10px] text-slate-500 mt-0.5 block">Planificación de continuidad</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4">
+    <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+      <i data-lucide="calendar-clock" class="w-4 h-4 text-amber-400"></i> Cronograma de Finalización
+    </h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-300">
+        <thead class="bg-slate-900 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+          <tr>
+            <th class="p-3">Inquilino / DNI</th>
+            <th class="p-3">Fecha de Fin</th>
+            <th class="p-3 text-center">Días Restantes</th>
+            <th class="p-3">Canon Vigente</th>
+            <th class="p-3 text-center">Estado del Plazo</th>
+            <th class="p-3 text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="expirations-table-body" class="divide-y divide-slate-800">
+          <tr><td colspan="6" class="p-6 text-center text-slate-500">Cargando cronograma...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================================================================= -->
+<!-- VISTA PROTEGIDA: PORTAL GENERAL DE INMUEBLES (ALQUILER & VENTA)  -->
+<!-- ================================================================= -->
+<div id="view-portal" class="hidden space-y-6 animate-fade-in max-w-6xl mx-auto text-left">
+
+  <!-- Encabezado del Portal -->
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+      <div>
+        <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30 tracking-widest">
+          Red Oficial CUCIS · Inventario Verificado
+        </span>
+        <h2 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight mt-3">Portal Inmobiliario</h2>
+        <p class="text-xs text-slate-400 mt-1">Explorá departamentos, casas y locales disponibles para alquiler o compra con respaldo del Buró.</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="portal-props-count" class="text-xs font-mono font-bold text-slate-400 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+          0 inmuebles disponibles
+        </span>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtros Rápidos -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Operación</label>
+        <select id="portal-filter-op" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+          <option value="ALL">Todas (Alquiler y Venta)</option>
+          <option value="ALQUILER_TRADICIONAL">Alquiler Tradicional</option>
+          <option value="VENTA">Venta</option>
+          <option value="ALQUILER_TEMPORAL">Alquiler Temporal</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipología</label>
+        <select id="portal-filter-type" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+          <option value="ALL">Todas las tipologías</option>
+          <option value="Monoambiente">Monoambiente</option>
+          <option value="1 Dormitorio">1 Dormitorio</option>
+          <option value="2 Dormitorios">2 Dormitorios</option>
+          <option value="3 Dormitorios">3 Dormitorios</option>
+          <option value="Casa">Casa / Chalet</option>
+          <option value="Local Comercial">Local Comercial</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Presupuesto Máximo</label>
+        <input type="number" id="portal-filter-price" placeholder="Sin límite" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+      </div>
+
+      <div class="flex items-end">
+        <button type="button" id="portal-btn-apply" class="w-full bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black py-2 px-4 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i> Buscar Inmuebles
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grilla de Inmuebles del Portal -->
+  <div id="portal-props-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+    <!-- Se inyectan las tarjetas desde JS -->
+  </div>
+</div>
+
+<!-- VISTA: INVENTARIO DE PROPIEDADES (INQUILIA BROKER) -->
+<div id="view-properties" class="hidden space-y-6 animate-fade-in max-w-6xl mx-auto text-left">
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+      <div>
+        <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30 tracking-widest">
+          Inquilia Broker · Suite Corporativa CUCIS
+        </span>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Cartera de Propiedades</h2>
+        <p class="text-xs text-slate-400 mt-1">Gestión integral de captaciones, estado de disponibilidad y emisión directa de contratos.</p>
+      </div>
+
+      <button type="button" onclick="copiarLinkMiCatalogo()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold px-3 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0" title="Copiar enlace a mi sitio web público">
+        <i data-lucide="globe" class="w-4 h-4 text-[#16c2a3]"></i> Mi Web Pública
+      </button>
+      
+      <button type="button" id="btn-nueva-propiedad" class="bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center gap-2 shrink-0">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i> Cargar Inmueble
+      </button>
+    </div>
+
+    <!-- Métricas de stock rápido -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Total en Cartera</span>
+        <span id="prop-count-total" class="text-2xl font-black text-white mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Inmuebles registrados</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-emerald-400 block">Disponibles</span>
+        <span id="prop-count-available" class="text-2xl font-black text-emerald-400 mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">En oferta activa</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-amber-400 block">Reservados</span>
+        <span id="prop-count-reserved" class="text-2xl font-black text-amber-400 mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Con seña tomada</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-sky-400 block">Alquilados</span>
+        <span id="prop-count-rented" class="text-2xl font-black text-sky-400 mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Con contrato vigente</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grilla de Tarjetas de Propiedades -->
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+      <!-- Selector de Sub-Pestaña de Inventario -->
+      <div class="flex items-center gap-2">
+        <button type="button" id="tab-prop-own" onclick="cambiarSubTabPropiedades('OWN')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-[#16c2a3]/10 text-[#16c2a3] border border-[#16c2a3]/30 cursor-pointer flex items-center gap-1.5">
+          <i data-lucide="building" class="w-3.5 h-3.5"></i> Mi Cartera
+        </button>
+        <button type="button" id="tab-prop-network" onclick="cambiarSubTabPropiedades('NETWORK')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 text-slate-400 border border-slate-800 hover:text-white cursor-pointer flex items-center gap-1.5">
+          <i data-lucide="share-2" class="w-3.5 h-3.5 text-indigo-400"></i> Red de Colegas CUCIS
+        </button>
+      </div>
+
+      <!-- Filtros rápidos -->
+      <div class="flex items-center gap-2">
+        <select id="filter-prop-operation" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none">
+          <option value="ALL">Todas las operaciones</option>
+          <option value="ALQUILER_TRADICIONAL">Alquiler Tradicional</option>
+          <option value="VENTA">Ventas</option>
+          <option value="ALQUILER_TEMPORAL">Temporales</option>
+        </select>
+
+        <select id="filter-prop-status" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none">
+          <option value="ALL">Todos los Estados</option>
+          <option value="DISPONIBLE">Disponibles</option>
+          <option value="RESERVADO">Reservados / En trámite</option>
+          <option value="ALQUILADO">Alquilados</option>
+          <option value="VENDIDO">Vendidos</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Contenedor dinámico de inmuebles -->
+    <div id="properties-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+      <!-- Se inyectan las tarjetas desde JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- VISTA: REPOSITORIO DE CONTRATOS Y AUDITORÍA LEY 25.326 (ÚNICA) -->
+<div id="view-contracts" class="hidden space-y-6 animate-fade-in max-w-5xl mx-auto text-left">
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+      <div>
+        <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30">Trazabilidad Inmutable · Ley 25.326</span>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Repositorio de Contratos y Certificaciones</h2>
+        <p class="text-xs text-slate-400 mt-1">Legajo digital de locaciones registradas, estado probatorio de anexos firmados y auditoría de scoring.</p>
+      </div>
+      <!-- BOTONES SUPERIORES (CERRADOS CON SU RESPECTIVO </div>) -->
+      <div class="flex flex-wrap items-center gap-2 shrink-0">
+        <button type="button" id="btn-nueva-invitacion-inquilino" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase transition flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Invitar Inquilino Digital
+        </button>
+        <button type="button" onclick="switchTab('certify')" class="bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center gap-2">
+          <i data-lucide="file-plus-2" class="w-4 h-4"></i> Carga y Emisión de Certificados
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Contratos Homologados</span>
+        <span id="contracts-total-count" class="text-2xl font-black text-white mt-1 block">0</span>
+        <span class="text-[10px] text-slate-500 mt-0.5 block">En el perfil activo</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Meses Auditados</span>
+        <span id="contracts-total-months" class="text-2xl font-black text-[#16c2a3] mt-1 block">0</span>
+        <span class="text-[10px] text-slate-500 mt-0.5 block">Historial locativo acumulado</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Deuda Total Registrada</span>
+        <span id="contracts-total-debt" class="text-2xl font-black text-slate-300 mt-1 block">$0</span>
+        <span class="text-[10px] text-slate-500 mt-0.5 block">Monto en mora o retención</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+        <i data-lucide="folder-check" class="w-4 h-4 text-[#16c2a3]"></i> Registro Fáctico de Locaciones
+      </h3>
+      <span id="contracts-context-badge" class="text-[10px] font-bold text-slate-400 uppercase bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">Cargando...</span>
+    </div>
+
+    <!-- Pestañas de Perspectiva (Propietario vs Inquilino) -->
+    <div id="contracts-tabs-container" class="flex border-b border-slate-800 gap-2 pb-2">
+      <button type="button" onclick="setContractsSubTab('OWNER')" id="tab-btn-contracts-owner" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#16c2a3]/10 text-[#16c2a3] border border-[#16c2a3]/30 cursor-pointer">
+        Mis Inmuebles (Propietario)
+      </button>
+      <button type="button" onclick="setContractsSubTab('TENANT')" id="tab-btn-contracts-tenant" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-900 text-slate-400 border border-slate-800 hover:text-white cursor-pointer">
+        Como Inquilino (Mi Perfil)
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-300">
+        <thead class="bg-slate-900 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+          <tr>
+            <th class="p-3">Inquilino / DNI</th>
+            <th class="p-3">Período</th>
+            <th class="p-3">Canon Mensual</th>
+            <th class="p-3 text-center">Score</th>
+            <th class="p-3 text-center">Cumplimiento</th>
+            <th class="p-3 text-center">Evidencia Legal</th>
+          </tr>
+        </thead>
+        <tbody id="contracts-table-body" class="divide-y divide-slate-800">
+          <tr><td colspan="6" class="p-6 text-center text-slate-500">Cargando contratos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- VISTA: PIPELINE DE INTERESADOS Y POSTULANTES (INQUILIA BROKER CRM) -->
+<div id="view-leads" class="hidden space-y-6 animate-fade-in max-w-6xl mx-auto text-left">
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+      <div>
+        <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30 tracking-widest">
+          Inquilia Broker · Gestión de Demanda & Postulantes
+        </span>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Interesados y Calificación Crediticia</h2>
+        <p class="text-xs text-slate-400 mt-1">Embudo de consultas, seguimiento comercial y scoring de solvencia fáctica en 1 clic.</p>
+      </div>
+      
+      <button type="button" id="btn-nuevo-lead" class="bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center gap-2 shrink-0">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo Interesado
+      </button>
+    </div>
+
+    <!-- Métricas del embudo comercial -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Consultas</span>
+        <span id="lead-count-total" class="text-2xl font-black text-white mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Postulantes registrados</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-sky-400 block">Nuevos / A Contactar</span>
+        <span id="lead-count-new" class="text-2xl font-black text-sky-400 mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Pendientes de respuesta</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-amber-400 block">En Evaluación</span>
+        <span id="lead-count-eval" class="text-2xl font-black text-amber-400 mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Visitas o seña en curso</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-emerald-400 block">Calificados / Ganados</span>
+        <span id="lead-count-won" class="text-2xl font-black text-emerald-400 mt-1 block">0</span>
+        <span class="text-[9px] text-slate-500">Listos para emitir contrato</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor del Listado / Pipeline -->
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+        <i data-lucide="layers" class="w-4 h-4 text-[#16c2a3]"></i> Postulantes en Cartera
+      </h3>
+      
+      <!-- Filtro rápido por estado -->
+      <div class="flex items-center gap-2">
+        <select id="filter-lead-status" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none">
+          <option value="ALL">Todos los Estados</option>
+          <option value="NUEVO">Nuevos</option>
+          <option value="CONTACTADO">Contactados / Visita</option>
+          <option value="EN_EVALUACION">En Evaluación</option>
+          <option value="GANADO">Calificados / Ganados</option>
+          <option value="DESCARTADO">Descartados / No Aprobados</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Grilla / Lista dinámica de interesados -->
+    <div id="leads-list-container" class="space-y-3 pt-2">
+      <!-- Se inyectan las tarjetas desde JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- VISTA: REPORTES DE CARTERA (INTELIGENCIA Y AUDITORÍA EJECUTIVA) -->
+<div id="view-reports" class="hidden space-y-6 animate-fade-in max-w-5xl mx-auto text-left">
+
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+      <div>
+        <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30">Inteligencia de Datos Locativos</span>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight mt-3">Reporte Ejecutivo de Cartera</h2>
+        <p class="text-xs text-slate-400 mt-1">Distribución de solvencia, riesgo de mora y volumen económico administrado.</p>
+      </div>
+      <button type="button" onclick="window.print()" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-2 cursor-pointer shrink-0">
+        <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Informe
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Flujo Administrado</span>
+        <span id="rep-total-canon" class="text-xl font-black text-white mt-1 block">$0</span>
+        <span class="text-[9px] text-slate-500">Canon mensual total</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Score Promedio</span>
+        <span id="rep-avg-score" class="text-xl font-black text-[#16c2a3] mt-1 block">0 / 100</span>
+        <span class="text-[9px] text-slate-500">Calificación de cartera</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-emerald-400 block">100%</span>
+        <span class="text-[9px] text-slate-500">Pagos a término</span>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block">Cartera en Mora</span>
+        <span id="rep-total-debt" class="text-xl font-black text-rose-400 mt-1 block">$0</span>
+        <span class="text-[9px] text-slate-500">Exposición de deuda</span>
+      </div>
+    </div>
+
+    <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xs font-black text-white uppercase tracking-wider">Distribución de Solvencia de Inquilinos</h3>
+        <span id="rep-total-tenants" class="text-[10px] font-bold text-slate-400">0 inquilinos evaluados</span>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <div class="flex justify-between text-[11px] mb-1">
+            <span class="text-emerald-400 font-bold">Excelente Solvencia (Score ≥ 70)</span>
+            <span id="rep-count-high" class="text-slate-300 font-mono">0 (0%)</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div id="rep-bar-high" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-[11px] mb-1">
+            <span class="text-amber-400 font-bold">Riesgo Moderado (Score 45 - 69)</span>
+            <span id="rep-count-med" class="text-slate-300 font-mono">0 (0%)</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div id="rep-bar-med" class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-[11px] mb-1">
+            <span class="text-rose-400 font-bold">Alto Riesgo Locativo (Score &lt; 45)</span>
+            <span id="rep-count-low" class="text-slate-300 font-mono">0 (0%)</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-2">
+            <div id="rep-bar-low" class="bg-rose-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i> Alertas y Seguimiento de Mora
+      </h3>
+      <div id="rep-alerts-container" class="space-y-2">
+        <div class="p-4 bg-slate-950/40 border border-slate-900 rounded-xl text-center text-slate-500 text-xs">
+          Cargando análisis de cartera...
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal para Inspeccionar Evidencia del Anexo Firmado -->
+<div id="modal-anexo" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+      <h3 id="modal-anexo-title" class="text-sm font-bold text-white flex items-center gap-2">
+        <i data-lucide="file-check" class="w-4 h-4 text-[#16c2a3]"></i>
+        Auditoría de Respaldo Documental
+      </h3>
+      <button type="button" onclick="cerrarModalAnexo()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+        ✕
+      </button>
+    </div>
+
+    <div class="p-4 overflow-auto flex-1 flex items-center justify-center bg-slate-900/50 min-h-[300px]">
+      <img id="modal-anexo-img" src="" alt="Comprobante Legal" class="max-w-full max-h-[65vh] object-contain rounded-lg hidden shadow-md">
+      <iframe id="modal-anexo-pdf" src="" class="w-full h-[65vh] rounded-lg hidden border border-slate-800"></iframe>
+    </div>
+
+    <div class="p-4 border-t border-slate-800 flex items-center justify-between bg-slate-950">
+      <span class="text-xs text-slate-400">Verificado según Ley Nacional 25.326</span>
+      <div class="flex items-center gap-2">
+        <a id="modal-anexo-download" href="" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Original
+        </a>
+        <button type="button" onclick="cerrarModalAnexo()" class="px-4 py-1.5 bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] rounded-xl text-xs font-black uppercase tracking-wider transition">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- VISTA PÚBLICA: PLANES Y PRECIOS                                   -->
+<!-- ================================================================= -->
+<div id="view-account" class="hidden max-w-5xl mx-auto space-y-8 animate-fade-in text-left">
+
+  <!-- Encabezado comercial -->
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl text-center space-y-3">
+    <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-3 py-1 rounded-full border border-[#16c2a3]/30 tracking-widest">
+      Transparencia Institucional · Red Homologada
+    </span>
+    <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">
+      Planes y Precios
+    </h2>
+    <p class="text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed">
+      Consultá informes fácticos de solvencia respaldados por la Ley Nº 25.326. Sin costos ocultos, con consultas mensuales gratuitas y activación instantánea por Mercado Pago.
+    </p>
+
+    <!-- Selector de categoría -->
+    <div class="inline-flex p-1 bg-slate-950 border border-slate-800 rounded-xl mt-4">
+      <button type="button" onclick="mostrarPestañaPrecios('LANDLORD')" id="btn-pricing-tab-landlord" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-[#16c2a3] text-[#060913] shadow cursor-pointer">
+        Particulares y Propietarios
+      </button>
+      <button type="button" onclick="mostrarPestañaPrecios('AGENCY')" id="btn-pricing-tab-agency" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white cursor-pointer">
+        Inmobiliarias CUCIS
+      </button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 1: PROPIETARIOS DIRECTOS -->
+  <div id="pricing-section-landlord" class="space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Plan Gratuito -->
+      <div class="glass-card rounded-2xl p-6 border border-slate-800 flex flex-col justify-between space-y-6">
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Beneficio Permanente</span>
+            <span class="text-xs text-slate-400 font-bold">Sin Cargo</span>
+          </div>
+          <h4 class="text-xl font-black text-white">2 Consultas Mensuales</h4>
+          <p class="text-3xl font-black text-emerald-400">$0 <span class="text-xs font-normal text-slate-400">/ mes</span></p>
+          <p class="text-xs text-slate-400 leading-relaxed pt-2 border-t border-slate-900">
+            Para propietarios directos. Se renuevan automáticamente el día 1 de cada mes calendario.
+          </p>
+          <ul class="space-y-2 text-xs text-slate-300">
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Acceso al Score Reputacional oficial</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Verificación de identidad por DNI</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Registro de contratos y egresos</li>
+          </ul>
+        </div>
+        <div class="pt-4 border-t border-slate-900">
+          <button type="button" onclick="contratarPack('PARTICULAR_FREE', 'FREE')" class="w-full bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer">
+            Comenzar con 2 Gratis
+          </button>
+        </div>
+      </div>
+
+      <!-- Pack Adicional -->
+      <div class="glass-card rounded-2xl p-6 border border-[#16c2a3]/40 flex flex-col justify-between space-y-6">
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase tracking-widest text-[#16c2a3] bg-[#16c2a3]/10 px-3 py-1 rounded-full border border-[#16c2a3]/30">Pack Extra</span>
+            <span class="text-xs text-slate-400 font-bold">Vigencia 30 días</span>
+          </div>
+          <h4 class="text-xl font-black text-white">+5 Consultas Adicionales</h4>
+          <p class="text-3xl font-black text-[#16c2a3]">$10.000 <span class="text-xs font-normal text-slate-400">ARS</span></p>
+          <p class="text-xs text-slate-400 leading-relaxed pt-2 border-t border-slate-900">
+            Se adicionan a tus 2 consultas gratuitas si necesitás evaluar más candidatos en el mes.
+          </p>
+          <ul class="space-y-2 text-xs text-slate-300">
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Disponibilidad inmediata en tu cuenta</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Vigencia de 30 días de fecha a fecha</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Pago seguro con Mercado Pago</li>
+          </ul>
+        </div>
+        <div class="space-y-2 pt-4 border-t border-slate-900">
+          <button type="button" onclick="contratarPack('PARTICULAR_PACK_5', 'ONE_TIME')" class="w-full bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2">
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i> Comprar Pack 5 Consultas ($10.000)
+          </button>
+          <button type="button" onclick="contratarPack('PARTICULAR_PACK_5', 'SUBSCRIPTION')" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold py-2 rounded-xl text-[11px] uppercase transition-all cursor-pointer">
+            Adherir Débito Automático Mensual
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: INMOBILIARIAS CUCIS -->
+  <div id="pricing-section-agency" class="hidden space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Pack 50 -->
+      <div class="glass-card rounded-2xl p-6 border border-slate-800 flex flex-col justify-between space-y-6">
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase tracking-widest text-[#16c2a3] bg-[#16c2a3]/10 px-3 py-1 rounded-full border border-[#16c2a3]/30">Inmobiliaria Inicial</span>
+            <span class="text-xs text-slate-400 font-bold">Ciclo Mensual</span>
+          </div>
+          <h4 class="text-2xl font-black text-white">50 Consultas <span class="text-sm font-normal text-slate-400">/ mes</span></h4>
+          <p class="text-3xl font-black text-[#16c2a3]">$80.000 <span class="text-xs font-normal text-slate-400">ARS</span></p>
+          <ul class="space-y-2.5 text-xs text-slate-300 pt-2 border-t border-slate-900">
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> <strong>Bolsa compartida:</strong> consumo unificado con todos tus agentes</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Certificados oficiales con matrícula CUCIS</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Trazabilidad y auditoría de operadores</li>
+            <li class="flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400"></i> Reinicio mensual al vencer el ciclo</li>
+          </ul>
+        </div>
+        <div class="space-y-2 pt-4 border-t border-slate-900">
+          <button type="button" onclick="contratarPack('AGENCY_PACK_50', 'SUBSCRIPTION')" class="w-full bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2">
+            <i data-lucide="repeat" class="w-4 h-4"></i> Adherir Débito Automático Mensual
+          </button>
+          <button type="button" onclick="contratarPack('AGENCY_PACK_50', 'ONE_TIME')" class="w-full bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 font-bold py-2 rounded-xl text-[11px] uppercase transition-all cursor-pointer">
+            Pagar 1 Mes ($80.000)
+          </button>
+        </div>
+      </div>
+
+      <!-- Pack 200 -->
+      <div class="glass-card rounded-2xl p-6 border border-indigo-500/40 flex flex-col justify-between space-y-6">
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/40">Alta Rotación</span>
+            <span class="text-xs text-slate-400 font-bold">Ciclo Mensual</span>
+          </div>
+          <h4 class="text-2xl font-black text-white">200 Consultas <span class="text-sm font-normal text-slate-400">/ mes</span></h4>
+          <p class="text-3xl font-black text-[#16c2a3]">$150.000 <span class="text-xs font-normal text-slate-400">ARS</span></p>
+          <ul class="space-y-2.5 text-xs text-slate-300 pt-2 border-t border-slate-900">
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Para inmobiliarias con múltiples sucursales</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Menor costo por consulta de la red ($750 c/u)</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#16c2a3]"></i> Métricas y reportes ejecutivos de cartera</li>
+            <li class="flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400"></i> Reinicio mensual al vencer el ciclo</li>
+          </ul>
+        </div>
+        <div class="space-y-2 pt-4 border-t border-slate-900">
+          <button type="button" onclick="contratarPack('AGENCY_PACK_200', 'SUBSCRIPTION')" class="w-full bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] font-black py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2">
+            <i data-lucide="repeat" class="w-4 h-4"></i> Adherir Débito Automático Mensual
+          </button>
+          <button type="button" onclick="contratarPack('AGENCY_PACK_200', 'ONE_TIME')" class="w-full bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 font-bold py-2 rounded-xl text-[11px] uppercase transition-all cursor-pointer">
+            Pagar 1 Mes ($150.000)
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- VISTA: CONFIGURACIÓN -->
+<div id="view-settings" class="hidden max-w-4xl mx-auto space-y-8 animate-fade-in mt-6 text-left">
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl">
+    <h3 class="text-lg font-black text-white uppercase tracking-tight mb-6">Configuración de Perfil</h3>
+    <form id="form-settings" class="space-y-6 text-xs">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Fila 1: Nombre y DNI (Solo lectura) -->
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre y Apellido (Solo lectura)</label>
+          <input type="text" id="settings-nombre" disabled class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-400 cursor-not-allowed select-none" />
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI (Bloqueado por Seguridad)</label>
+          <input type="text" id="settings-dni" disabled class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-400 cursor-not-allowed select-none" />
+        </div>
+
+        <!-- Fila 2: CUIT/CUIL y Teléfono Móvil -->
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">CUIT / CUIL Fiscal</label>
+          <input type="text" id="settings-cuit" inputmode="numeric" placeholder="Ej: 20-28633912-3" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Teléfono Móvil (WhatsApp)</label>
+          <input type="text" id="settings-movil" required class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+        </div>
+
+        <!-- Fila 3: Correo Electrónico Legal y Condición Fiscal -->
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Correo Electrónico Legal</label>
+          <input type="email" id="settings-email" required class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Condición Fiscal AFIP / ARCA</label>
+          <select id="settings-fiscal" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+            <option value="Monotributo">Monotributista</option>
+            <option value="Responsable Inscripto">Responsable Inscripto</option>
+            <option value="Empleado">Empleado / Relación de Dependencia</option>
+            <option value="Exento">Exento / Consumidor Final</option>
+          </select>
+        </div>
+
+        <!-- Fila 4: Provincia y Ciudad / Localidad (Base Nacional) -->
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Provincia *</label>
+          <select id="settings-province" required class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+            <option value="Salta" selected>Salta</option>
+            <option value="Buenos Aires">Buenos Aires</option>
+            <option value="CABA">Ciudad Autónoma de Buenos Aires</option>
+            <option value="Catamarca">Catamarca</option>
+            <option value="Chaco">Chaco</option>
+            <option value="Chubut">Chubut</option>
+            <option value="Córdoba">Córdoba</option>
+            <option value="Corrientes">Corrientes</option>
+            <option value="Entre Ríos">Entre Ríos</option>
+            <option value="Formosa">Formosa</option>
+            <option value="Jujuy">Jujuy</option>
+            <option value="La Pampa">La Pampa</option>
+            <option value="La Rioja">La Rioja</option>
+            <option value="Mendoza">Mendoza</option>
+            <option value="Misiones">Misiones</option>
+            <option value="Neuquén">Neuquén</option>
+            <option value="Río Negro">Río Negro</option>
+            <option value="San Juan">San Juan</option>
+            <option value="San Luis">San Luis</option>
+            <option value="Santa Cruz">Santa Cruz</option>
+            <option value="Santa Fe">Santa Fe</option>
+            <option value="Santiago del Estero">Santiago del Estero</option>
+            <option value="Tierra del Fuego">Tierra del Fuego</option>
+            <option value="Tucumán">Tucumán</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Ciudad / Localidad *</label>
+          <input type="text" id="settings-city" placeholder="Ej: Salta Capital" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+        </div>
+
+        <!-- Fila 5: Domicilio Legal y Nombre Comercial/Inmobiliaria -->
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Domicilio Legal / Fiscal (Calle y Nro)</label>
+          <input type="text" id="settings-address" placeholder="Ej: Av. Belgrano 1240, Piso 3" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inmobiliaria / Razón Social</label>
+          <input type="text" id="settings-fantasia" disabled class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-400 cursor-not-allowed select-none">
+        </div>
+
+        <!-- Fila 6: Confirmación de Seguridad con Clave (Oculta hasta hacer clic en Editar) -->
+        <div id="settings-password-container" class="hidden md:col-span-2 pt-4 border-t border-slate-850 space-y-1.5 text-left">
+          <label class="block text-[10px] uppercase font-bold text-amber-400">
+            Confirmar con Contraseña Actual *
+          </label>
+          <div class="relative max-w-sm">
+            <input 
+            type="password" 
+            id="settings-password-confirm" 
+            autocomplete="current-password" 
+            placeholder="••••••••" 
+            class="w-full px-4 py-2.5 bg-slate-900 border border-amber-500/40 rounded-xl text-white focus:border-amber-400 focus:outline-none text-xs"
+            />
+          </div>
+          <p class="text-[10px] text-slate-500">
+            Para resguardar la identidad y evitar modificaciones no deseadas, ingresá tu clave para aplicar los cambios.
+          </p>
+        </div>
+      </div>
+
+      <!-- Pie de tarjeta: Botones alineados a la derecha -->
+      <div class="pt-4 border-t border-slate-900 flex items-center justify-end gap-3">
+        <!-- 1. Botón Inicial: Editar Datos (Único visible en modo lectura) -->
+        <button 
+        type="button" 
+        id="btn-edit-settings" 
+        class="bg-slate-900 hover:bg-slate-800 text-[#16c2a3] border border-[#16c2a3]/40 font-bold px-6 py-2.5 rounded-xl uppercase tracking-wider text-xs transition cursor-pointer flex items-center gap-2 shadow-sm">
+        <i data-lucide="edit-3" class="w-4 h-4"></i> Editar Datos
+      </button>
+
+      <!-- 2. Botón Cancelar (Aparece en modo edición) -->
+      <button 
+      type="button" 
+      id="btn-cancel-settings" 
+      class="hidden bg-slate-900 text-slate-400 hover:text-white px-5 py-2.5 rounded-xl uppercase tracking-wider border border-slate-800 text-xs transition cursor-pointer">
+      Cancelar
+    </button>
+
+    <!-- 3. Botón Guardar Cambios (Aparece en modo edición) -->
+    <button 
+    type="submit" 
+    id="btn-save-settings" 
+    class="hidden bg-[#16c2a3] text-[#060913] font-black px-6 py-2.5 rounded-xl uppercase tracking-wider hover:bg-emerald-600 transition-colors cursor-pointer text-xs shadow-md">
+    Guardar Cambios
+  </button>
+</div>
+</form>
+</div>
+
+<!-- Upgrade a CUCIS -->
+<div id="upgrade-cucis-container" class="hidden glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl">
+  <div class="mb-4">
+    <h3 class="text-lg font-black text-white uppercase tracking-tight">Vincular Estructura CUCIS (Inmobiliaria)</h3>
+    <p class="text-xs text-slate-400 mt-1">Elevá tu cuenta de propietario para operar como corredor matriculado manteniendo tus inmuebles actuales.</p>
+  </div>
+  <form id="form-upgrade-cucis" class="space-y-4 text-xs">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Número de Matrícula CUCIS</label>
+        <input type="text" id="settings-nro-matricula" placeholder="Ej: 9999" required class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre de Fantasía / Inmobiliaria</label>
+        <input type="text" id="settings-fantasia-upgrade" placeholder="Ej: Estudio Inmobiliario" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white focus:border-[#16c2a3] focus:outline-none">
+      </div>
+    </div>
+    <div>
+      <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fotografía de Credencial CUCIS</label>
+      <input type="file" id="settings-credential-file" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#16c2a3] file:text-[#060913] hover:file:bg-emerald-600 file:cursor-pointer">
+    </div>
+    <button type="submit" class="bg-gradient-to-r from-[#16c2a3] to-emerald-400 text-[#060913] font-black px-6 py-3 rounded-xl uppercase tracking-wider hover:opacity-90 transition-opacity cursor-pointer">
+      Activar Perfil Inmobiliario
+    </button>
+  </form>
+</div>
+
+<!-- Gestión de Agentes CUCIS -->
+<div id="cucis-agents-section" class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl hidden">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <div>
+      <h3 class="text-lg font-black text-white uppercase tracking-tight">Gestión de Agentes Inmobiliarios</h3>
+      <p class="text-xs text-slate-400 mt-1">Supervisá las subcuentas activas y el consumo de consultas en la red.</p>
+    </div>
+    <button type="button" id="btn-open-agent-modal" class="bg-gradient-to-r from-[#16c2a3] to-emerald-400 text-[#060913] font-black px-4 py-2.5 rounded-xl uppercase tracking-wider text-xs shadow-lg cursor-pointer flex items-center gap-2">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo Agente
+    </button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs text-slate-300">
+      <thead class="bg-slate-900 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+        <tr>
+          <th class="p-3">Agente Inmobiliario</th>
+          <th class="p-3">DNI</th>
+          <th class="p-3 text-center">Consultas Realizadas</th>
+          <th class="p-3 text-right">Estado</th>
+        </tr>
+      </thead>
+      <tbody id="agents-table-body" class="divide-y divide-slate-800"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4. PANEL PRIVADO: SALDO, CICLO Y MOVIMIENTOS (LEDGER) -->
+<div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-900 pb-4 gap-4">
+    <div>
+      <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30">Estado de Cuenta</span>
+      <h3 class="text-lg font-black text-white uppercase tracking-tight mt-2">Saldo y Facturación</h3>
+      <p class="text-xs text-slate-400 mt-1">Créditos disponibles, vencimiento de ciclo y auditoría de consumos.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="account-current-role" class="text-[10px] font-bold text-slate-400 uppercase bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">Cargando...</span>
+      <button type="button" onclick="switchTab('account')" class="px-3.5 py-1.5 bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+        <i data-lucide="tag" class="w-3.5 h-3.5"></i> Ver Planes
+      </button>
+    </div>
+  </div>
+
+  <!-- Banner reactivo de suscripción Mercado Pago -->
+  <div id="account-sub-warning" class="hidden p-4 rounded-xl border border-amber-500/30 bg-amber-950/30 flex items-start gap-3">
+    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+    <p id="account-sub-warning-msg" class="text-xs text-amber-200 leading-relaxed"></p>
+  </div>
+
+  <!-- Paquetes de contratación dinámicos -->
+  <div id="account-agency-packs" class="hidden space-y-2"></div>
+  <div id="account-landlord-packs" class="hidden space-y-2"></div>
+
+  <!-- Aviso para agentes empleados -->
+  <div id="account-employee-notice" class="hidden p-4 rounded-xl border border-amber-500/30 bg-slate-950/60 text-xs text-amber-300">
+    Operando bajo el cupo corporativo de la inmobiliaria matriz. Solo el corredor titular puede contratar o recargar planes.
+  </div>
+
+  <!-- Métricas de cuenta -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+      <span class="text-[10px] uppercase font-bold text-slate-400 block">Consultas Disponibles Hoy</span>
+      <span id="account-current-credits" class="text-2xl font-black text-white mt-1 block">0</span>
+      <span id="account-credits-detail" class="text-[10px] text-slate-500 mt-0.5 block">En el contexto activo</span>
+    </div>
+    <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+      <span class="text-[10px] uppercase font-bold text-slate-400 block">Fin del Ciclo Actual</span>
+      <span id="account-cycle-expiration" class="text-sm font-black text-amber-400 mt-1.5 block">Sin pack activo</span>
+      <span class="text-[10px] text-slate-500 mt-1 block">Reinicio automático al vencer</span>
+    </div>
+    <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+      <span class="text-[10px] uppercase font-bold text-slate-400 block">Débito Automático</span>
+      <span id="account-subscription-status" class="text-sm font-black text-slate-300 mt-1.5 block">No adherido</span>
+      <span class="text-[10px] text-slate-500 mt-1 block">Vía Mercado Pago</span>
+    </div>
+  </div>
+
+  <!-- Libro Mayor (Ledger) -->
+  <div class="pt-4 border-t border-slate-900 space-y-3">
+    <h4 class="text-xs font-black text-white uppercase tracking-widest">Últimos Movimientos de Créditos</h4>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-300">
+        <thead class="bg-slate-900 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+          <tr>
+            <th class="p-3">Fecha</th>
+            <th class="p-3">Concepto</th>
+            <th class="p-3 text-center">Movimiento</th>
+            <th class="p-3 text-right">Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="account-ledger-body" class="divide-y divide-slate-800">
+          <tr><td colspan="4" class="p-4 text-center text-slate-500">Sin movimientos registrados.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div> <!-- CIERRE DEFINITIVO DE #view-settings -->
+
+<!-- ================================================================= -->
+<!-- VISTA PÚBLICA: VERIFICACIÓN NOTARIAL DE CERTIFICADO (LEY 25.326)  -->
+<!-- ================================================================= -->
+<div id="view-verify" class="hidden max-w-xl mx-auto space-y-6 animate-fade-in text-left my-4">
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6 bg-slate-950/60 backdrop-blur-md">
+
+    <div class="border-b border-slate-800 pb-5 text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#16c2a3]/10 border border-[#16c2a3]/30 flex items-center justify-center">
+        <i data-lucide="shield-check" class="w-7 h-7 text-[#16c2a3]"></i>
+      </div>
+      <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30 tracking-wider">
+        Buró Oficial Homologado · Ley 25.326
+      </span>
+      <h2 class="text-lg font-black text-white uppercase tracking-tight mt-3">Autenticidad de Certificado</h2>
+      <p class="text-[11px] text-slate-400 mt-1">Validación criptográfica de antecedentes locativos en la red inmutable.</p>
+    </div>
+
+    <div id="verify-card-content" class="space-y-4">
+      <div class="text-xs text-slate-400 animate-pulse text-center py-8">
+        Consultando legajo de certificación en la red...
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-slate-800 text-center">
+      <button type="button" onclick="salirDeVerificacion()" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl border border-slate-700/60 text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center gap-2">
+        <i data-lucide="arrow-left" class="w-4 h-4 text-[#16c2a3]"></i> Ingresar a la Plataforma Inquilia
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- VISTA PÚBLICA: CATÁLOGO WEB DE LA INMOBILIARIA (INQUILIA BROKER)  -->
+<!-- ================================================================= -->
+<div id="view-agency-catalog" class="hidden max-w-6xl mx-auto space-y-6 animate-fade-in text-left my-4">
+  <!-- Cabecera Institucional de la Inmobiliaria -->
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4 bg-slate-950/70 backdrop-blur-md">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-900 pb-5">
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2">
+          <span class="text-[9px] uppercase font-black text-[#16c2a3] bg-[#16c2a3]/10 px-2.5 py-1 rounded-full border border-[#16c2a3]/30 tracking-wider flex items-center gap-1">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#16c2a3]"></i> Inmobiliaria Homologada CUCIS
+          </span>
+          <span id="cat-agency-cucis-badge" class="text-[9px] font-mono font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            Mat. CUCIS: -
+          </span>
+        </div>
+        <h2 id="cat-agency-name" class="text-2xl font-black text-white uppercase tracking-tight">Estudio Inmobiliario</h2>
+        <p class="text-xs text-slate-400">Cartera verificada con contratos respaldados por el Buró Oficial Inquilia (Ley 25.326).</p>
+      </div>
+
+      <!-- Acciones de contacto directo -->
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <button type="button" id="cat-agency-wa-btn" onclick="abrirWhatsAppInmobiliaria()" class="w-full md:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> Contactar por WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros de búsqueda para clientes -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Operación</label>
+        <select id="cat-filter-operation" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+          <option value="ALL">Todas las operaciones</option>
+          <option value="ALQUILER_TRADICIONAL">Alquiler Tradicional</option>
+          <option value="VENTA">Venta</option>
+          <option value="ALQUILER_TEMPORAL">Alquiler Temporal</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipología</label>
+        <select id="cat-filter-type" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+          <option value="ALL">Todas las tipologías</option>
+          <option value="Monoambiente">Monoambiente</option>
+          <option value="1 Dormitorio">1 Dormitorio</option>
+          <option value="2 Dormitorios">2 Dormitorios</option>
+          <option value="3 Dormitorios">3 Dormitorios</option>
+          <option value="Casa">Casa</option>
+          <option value="Local Comercial">Local Comercial</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Presupuesto Máximo</label>
+        <input type="number" id="cat-filter-max-price" placeholder="Sin límite de precio" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+      </div>
+
+      <div class="flex items-end">
+        <button type="button" id="cat-btn-apply-filters" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5">
+          <i data-lucide="filter" class="w-3.5 h-3.5 text-[#16c2a3]"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catálogo de Inmuebles -->
+  <div class="glass-card rounded-2xl p-6 md:p-8 border border-slate-800 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center border-b border-slate-900 pb-3">
+      <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+        <i data-lucide="home" class="w-4 h-4 text-[#16c2a3]"></i> Inmuebles Disponibles para Alquiler
+      </h3>
+      <span id="cat-props-count" class="text-xs font-bold text-slate-400">0 propiedades</span>
+    </div>
+
+    <div id="cat-props-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+      <!-- Se inyectan las tarjetas desde JS -->
+    </div>
+  </div>
+
+  <div class="text-center pt-2">
+    <a href="/" class="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition">
+      <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Volver a Inquilia Oficial
+    </a>
+  </div>
+</div>
+
+</div>
+</div>
+</main>
+
+<!-- MODAL: TRASPASO O DESVINCULACIÓN DE ADMINISTRACIÓN -->
+<div id="modal-transferir-contrato" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl space-y-4">
+    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+      <div class="flex items-center gap-2">
+        <i data-lucide="arrow-right-left" class="w-4 h-4 text-sky-400"></i>
+        <h3 class="text-xs font-black text-white uppercase tracking-wider">Gestión de Administración</h3>
+      </div>
+      <button type="button" onclick="cerrarModalTransferir()" class="text-slate-400 hover:text-white cursor-pointer p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <form id="form-modal-transferir" class="p-6 space-y-4 text-left">
+      <input type="hidden" id="modal-transf-contract-id">
+      <div>
+        <p id="modal-transf-info" class="text-xs font-bold text-white"></p>
+        <p class="text-[10px] text-slate-400 mt-0.5">El contrato, los meses acumulados y el anexo legal continuarán vigentes en la red.</p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-[10px] uppercase font-bold text-slate-400 block">Acción a Realizar *</label>
+        <div class="space-y-2">
+          <!-- 1. OPCIÓN POR DEFECTO: RETIRAR INMOBILIARIA -->
+          <label id="transf-label-unlink" class="flex items-start gap-3 p-3 rounded-xl border border-sky-500/40 bg-sky-500/10 cursor-pointer transition-all">
+            <input type="radio" name="transf-action" value="UNLINK" checked onchange="toggleTransfInputs('UNLINK')" class="mt-0.5 text-sky-400 focus:ring-0">
+            <div>
+              <span class="text-xs font-bold text-white block">Retirar Inmobiliaria (Autogestión)</span>
+              <span class="text-[10px] text-slate-400 block">El contrato queda bajo administración directa del propietario.</span>
+            </div>
+          </label>
+
+          <!-- 2. OPCIÓN SECUNDARIA: CEDER A OTRA INMOBILIARIA -->
+          <label id="transf-label-transfer" class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/40 cursor-pointer hover:border-slate-700 transition-all">
+            <input type="radio" name="transf-action" value="TRANSFER" onchange="toggleTransfInputs('TRANSFER')" class="mt-0.5 text-sky-400 focus:ring-0">
+            <div>
+              <span class="text-xs font-bold text-slate-300 block">Ceder a otra Inmobiliaria CUCIS</span>
+              <span class="text-[10px] text-slate-500 block">Asigna la administración del contrato a otro corredor matriculado.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- CAMPO OCULTO POR DEFECTO (SOLO VISIBLE AL ELEGIR 'TRANSFER') -->
+      <div id="transf-matricula-container" class="hidden">
+        <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Matrícula CUCIS Receptora *</label>
+        <input type="text" id="transf-matricula-input" inputmode="numeric" placeholder="Ej: 542" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-400">
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button type="button" onclick="cerrarModalTransferir()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer hover:bg-slate-700">
+          Cancelar
+        </button>
+        <button type="submit" id="btn-submit-transferir" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black uppercase shadow-lg cursor-pointer">
+          Desvincular Inmobiliaria
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: VINCULAR NUEVO AGENTE -->
+<div id="agent-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-sm font-black text-white uppercase tracking-wider">Vincular Agente a la Inmobiliaria</h3>
+      <button type="button" id="btn-close-agent-modal" class="text-slate-400 hover:text-white cursor-pointer">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <p class="text-xs text-slate-400 mb-4">Ingresá el DNI del usuario registrado que operará como agente bajo tu matrícula.</p>
+    <form id="form-link-agent" class="space-y-4">
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI del Usuario</label>
+        <input type="text" id="agent-dni-input" placeholder="Ej: 30123456" required
+        class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-[#16c2a3] focus:outline-none">
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" id="btn-cancel-agent-modal" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-800 cursor-pointer">Cancelar</button>
+        <button type="submit" class="bg-[#16c2a3] text-[#060913] font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wider hover:bg-emerald-600 transition-colors cursor-pointer">
+          Vincular Agente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: CALIFICACIÓN DE EGRESO Y EMISIÓN DE CERTIFICADO -->
+<div id="modal-finalizar-contrato" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-4">
+    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+      <div class="flex items-center gap-2">
+        <i data-lucide="award" class="w-4 h-4 text-[#16c2a3]"></i>
+        <h3 class="text-xs font-black text-white uppercase tracking-wider">Cierre y Emisión de Certificado</h3>
+      </div>
+      <button type="button" onclick="cerrarModalFinalizar()" class="text-slate-400 hover:text-white cursor-pointer p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <form id="form-modal-finalizar" class="p-6 space-y-4 text-left">
+      <input type="hidden" id="modal-fin-contract-id">
+      <div>
+        <p id="modal-fin-tenant-info" class="text-xs font-bold text-white"></p>
+        <p class="text-[10px] text-slate-400 mt-0.5">Ingresá los datos fácticos de egreso para asentar el score y emitir el certificado oficial en el Buró.</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Meses a Término *</label>
+          <input type="number" id="modal-fin-ontime" required min="0" placeholder="Ej: 12" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+        <div>
+          <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Meses con Mora *</label>
+          <input type="number" id="modal-fin-late" required min="0" placeholder="Ej: 0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Estado de Conservación *</label>
+        <select id="modal-fin-conservation" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+          <option value="Excelente">Excelente (Sin detalles)</option>
+          <option value="Bueno" selected>Bueno (Desgaste normal)</option>
+          <option value="Daños Documentados">Daños Documentados (Acta de egreso)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Depósito Retenido o Deuda Activa (ARS)</label>
+        <input type="number" id="modal-fin-debt" min="0" value="0" placeholder="Ej: 0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#16c2a3]">
+      </div>
+
+      <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 space-y-2 text-left">
+        <div class="flex items-center justify-between">
+          <label class="block text-[11px] font-bold text-slate-300">
+            Acta de Restitución Firmada
+          </label>
+          <span class="text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Optativo
+          </span>
+        </div>
+        <p class="text-[10px] text-slate-400">
+          Adjuntar acta de egreso con firmas ológrafas para acreditar fehacientemente los daños o retenciones de depósito declarados.
+        </p>
+        <input type="file" id="modal-fin-restitution-file" accept="image/*,.pdf" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#16c2a3]/10 file:text-[#16c2a3] file:text-[10px] file:font-bold cursor-pointer">
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button type="button" onclick="cerrarModalFinalizar()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer hover:bg-slate-700">
+          Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-[#16c2a3] text-[#060913] rounded-xl text-xs font-black uppercase shadow-lg hover:bg-emerald-600 cursor-pointer">
+          Finalizar y Emitir Certificado
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: DERECHO DE RÉPLICA / DESCARGO (LEY 25.326 ART. 16) -->
+<div id="modal-replica" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-4">
+    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+      <div class="flex items-center gap-2">
+        <i data-lucide="message-square" class="w-4 h-4 text-amber-400"></i>
+        <h3 class="text-xs font-black text-white uppercase tracking-wider">Descargo Legal · Ley 25.326 Art. 16</h3>
+      </div>
+      <button type="button" onclick="cerrarModalReplica()" class="text-slate-400 hover:text-white cursor-pointer p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <form id="form-modal-replica" class="p-6 space-y-4 text-left">
+      <input type="hidden" id="modal-rep-contract-id">
+      <div>
+        <p id="modal-rep-info" class="text-xs font-bold text-white"></p>
+        <p class="text-[10px] text-slate-400 mt-0.5">Asentá tu aclaración formal sobre las moras o retenciones registradas. Quedará vinculada al informe del Buró.</p>
+      </div>
+
+      <div>
+        <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Declaración / Fundamento *</label>
+        <textarea id="modal-rep-statement" rows="4" required placeholder="Explicá los motivos fácticos o legales que justifiquen el descargo..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#16c2a3]"></textarea>
+      </div>
+
+      <div id="modal-rep-existing-container" class="hidden p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[11px] text-emerald-400">
+        <p class="font-bold">✓ Réplica ya asentada en la red:</p>
+        <p id="modal-rep-existing-text" class="text-slate-300 mt-1 italic"></p>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button type="button" onclick="cerrarModalReplica()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer hover:bg-slate-700">
+          Cerrar
+        </button>
+        <button type="submit" id="modal-rep-submit-btn" class="px-4 py-2 bg-[#16c2a3] text-[#060913] rounded-xl text-xs font-black uppercase shadow-lg hover:bg-emerald-600 cursor-pointer">
+          Registrar Descargo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE DERECHO A RÉPLICA / RECTIFICACIÓN (LEY 25.326) -->
+<div id="modal-rectificacion" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+    <button type="button" id="btn-cerrar-modal-rectificacion" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl font-bold">
+        ⚖️
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-white">Derecho a Réplica y Rectificación</h3>
+        <p class="text-xs text-slate-400">Arts. 14 y 16 — Ley 25.326 (Protección de Datos Personales)</p>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-300 mb-4 bg-slate-800/60 p-3 rounded-xl border border-slate-700/40 leading-relaxed">
+      Si cancelaste la obligación y figura pendiente o inexacta, podés adjuntar el comprobante oficial (transferencia bancaria, recibo o libre deuda). El registro pasará preventivamente a <strong class="text-amber-400">En Proceso de Mediación</strong> por un plazo perentorio de 5 días hábiles.
+    </p>
+
+    <form id="form-rectificacion" class="space-y-4">
+      <input type="hidden" id="rect-contract-id" value="">
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Motivo / Descargo</label>
+        <textarea id="rect-descargo" rows="3" required placeholder="Ej: La transferencia fue acreditada el día 10/10 mediante comprobante adjunto..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Comprobante de Pago (PDF o Imagen)</label>
+        <input type="file" id="rect-archivo" accept=".pdf,image/*" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500/10 file:text-amber-400 hover:file:bg-amber-500/20 cursor-pointer">
+      </div>
+
+      <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+        <button type="button" id="btn-cancelar-modal-rectificacion" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition">
+          Cancelar
+        </button>
+        <button type="submit" id="btn-enviar-rectificacion" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition shadow-lg shadow-amber-400/20">
+          Enviar Rectificación
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL RESOLUCIÓN DE DISPUTA / RECTIFICACIÓN (LEY 25.326) -->
+<div id="modal-resolver-disputa" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 hidden">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between border-b border-slate-800 pb-4 mb-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+            Ley 25.326 · Mediación Legal
+          </span>
+          <span id="res-disputa-plazo-badge" class="text-[10px] font-bold text-slate-400 font-mono">
+            Plazo restante: ...
+          </span>
+        </div>
+        <h3 class="text-lg font-black text-white">Revisión de Rectificación de Deuda</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Comprobante y descargo remitido formalmente por el locatario.</p>
+      </div>
+      <button type="button" id="btn-cerrar-modal-resolver" class="text-slate-400 hover:text-white transition p-1 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <input type="hidden" id="res-disputa-contract-id" value="">
+
+    <!-- Cuerpo del Reclamo -->
+    <div class="space-y-4">
+      <!-- Inquilino e Inmueble -->
+      <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs">
+        <p class="text-slate-400">Titular: <span id="res-disputa-inquilino" class="font-bold text-white">-</span></p>
+        <p class="text-slate-400 mt-0.5">Inmueble: <span id="res-disputa-direccion" class="font-semibold text-slate-200">-</span></p>
+        <p class="text-slate-400 mt-0.5">Deuda registrada: <span id="res-disputa-monto" class="font-mono font-bold text-rose-400">-</span></p>
+      </div>
+
+      <!-- Descargo del inquilino -->
+      <div>
+        <label class="block text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1">Descargo del Inquilino:</label>
+        <div id="res-disputa-descargo" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-slate-200 whitespace-pre-wrap max-h-28 overflow-y-auto italic">
+          "..."
+        </div>
+      </div>
+
+      <!-- Comprobante adjunto -->
+      <div>
+        <label class="block text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1">Comprobante de Pago Adjuntado:</label>
+        <div class="flex items-center justify-between p-2.5 bg-slate-950 rounded-xl border border-slate-800">
+          <span class="text-xs text-slate-300 truncate max-w-[240px]">Documento de respaldo de transferencia</span>
+          <button type="button" id="btn-ver-comprobante-disputa" class="px-3 py-1.5 bg-[#16c2a3]/10 hover:bg-[#16c2a3]/20 text-[#16c2a3] border border-[#16c2a3]/30 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1">
+            👁️ Inspeccionar
+          </button>
+        </div>
+      </div>
+
+      <!-- Campo opcional de motivo de rechazo -->
+      <div id="res-disputa-motivo-container" class="hidden">
+        <label class="block text-[11px] uppercase tracking-wider text-rose-400 font-bold mb-1">Fundamento del Rechazo (Obligatorio por ley):</label>
+        <textarea id="res-disputa-motivo" rows="2" placeholder="Explicá por qué el comprobante no es válido o no cancela la obligación..." class="w-full bg-slate-950 border border-rose-500/30 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-400 transition"></textarea>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="mt-6 flex flex-col gap-2 pt-4 border-t border-slate-800">
+      <div class="flex items-center justify-between gap-3">
+        <button type="button" id="btn-iniciar-rechazo" class="w-1/2 px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold transition cursor-pointer">
+          Rechazar Reclamo
+        </button>
+        <button type="button" id="btn-aceptar-disputa" class="w-1/2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer shadow-lg shadow-emerald-500/20">
+          ✓ Homologar y Saldar
+        </button>
+      </div>
+
+      <!-- Botón de confirmación de rechazo (aparece al clickear Rechazar) -->
+      <button type="button" id="btn-confirmar-rechazo" class="hidden w-full px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black transition cursor-pointer">
+        Confirmar Rechazo con Causa
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: Invitar Inquilino Digital (Propietario / Inmobiliaria) -->
+<div id="modal-invitacion-inquilino" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <button id="btn-cerrar-modal-invitacion" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+    
+    <div class="flex items-center gap-3 mb-5">
+      <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+        <i data-lucide="user-plus" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">Invitar Inquilino a Alquiler</h3>
+        <p class="text-xs text-slate-400">Generá un enlace seguro para firma y consentimiento legal</p>
+      </div>
+    </div>
+
+    <form id="form-invitacion-inquilino" class="space-y-4">
+
+      <!-- 1. DATOS DEL PROPIETARIO / LOCADOR -->
+      <div id="inv-landlord-container" class="p-3 bg-slate-950/40 rounded-xl border border-slate-800 space-y-3">
+        <span class="text-[10px] uppercase font-bold text-[#16c2a3] tracking-wider block">Datos del Propietario / Locador</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Nombre y Apellido *</label>
+            <input type="text" id="inv-landlord-name" required placeholder="Ej: Roberto Sánchez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">DNI del Propietario *</label>
+            <input type="text" id="inv-landlord-dni" required inputmode="numeric" placeholder="Ej: 28633912" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. DATOS DEL INQUILINO -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Nombre del Inquilino *</label>
+          <input type="text" id="inv-tenant-name" required placeholder="Ej: Lucas Díaz" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">DNI del Inquilino *</label>
+          <input type="text" id="inv-tenant-dni" required inputmode="numeric" placeholder="Sin puntos ni guiones" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Email del Inquilino *</label>
+        <input type="email" id="inv-tenant-email" required placeholder="correo@ejemplo.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+      </div>
+
+      <!-- 3. DATOS DEL INMUEBLE -->
+      <!-- DATOS DEL INMUEBLE Y CENSO ESTRUCTURADO -->
+      <div class="p-3 bg-slate-950/40 rounded-xl border border-slate-800 space-y-3 text-left">
+        <span class="text-[10px] uppercase font-bold text-[#16c2a3] tracking-wider block">Ubicación y Tipología del Inmueble</span>
+
+        <!-- Provincia y Localidad -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Provincia *</label>
+            <select id="inv-province" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <option value="Salta" selected>Salta</option>
+              <option value="Buenos Aires">Buenos Aires</option>
+              <option value="CABA">Ciudad Autónoma de Buenos Aires</option>
+              <option value="Catamarca">Catamarca</option>
+              <option value="Chaco">Chaco</option>
+              <option value="Chubut">Chubut</option>
+              <option value="Córdoba">Córdoba</option>
+              <option value="Corrientes">Corrientes</option>
+              <option value="Entre Ríos">Entre Ríos</option>
+              <option value="Formosa">Formosa</option>
+              <option value="Jujuy">Jujuy</option>
+              <option value="La Pampa">La Pampa</option>
+              <option value="La Rioja">La Rioja</option>
+              <option value="Mendoza">Mendoza</option>
+              <option value="Misiones">Misiones</option>
+              <option value="Neuquén">Neuquén</option>
+              <option value="Río Negro">Río Negro</option>
+              <option value="San Juan">San Juan</option>
+              <option value="San Luis">San Luis</option>
+              <option value="Santa Cruz">Santa Cruz</option>
+              <option value="Santa Fe">Santa Fe</option>
+              <option value="Santiago del Estero">Santiago del Estero</option>
+              <option value="Tierra del Fuego">Tierra del Fuego</option>
+              <option value="Tucumán">Tucumán</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Localidad / Ciudad *</label>
+            <input type="text" id="inv-city" required placeholder="Ej: Salta Capital" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <!-- Barrio y Tipología de Ambientes -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Barrio / Zona *</label>
+            <input type="text" id="inv-neighborhood" required placeholder="Ej: Tres Cerritos / Centro" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipología de Inmueble *</label>
+            <select id="inv-property-type" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <option value="Monoambiente">Monoambiente</option>
+              <option value="1 Dormitorio" selected>1 Dormitorio / 2 Ambientes</option>
+              <option value="2 Dormitorios">2 Dormitorios / 3 Ambientes</option>
+              <option value="3 Dormitorios">3 Dormitorios / 4 Ambientes</option>
+              <option value="4 o más Dormitorios">4 o más Dormitorios</option>
+              <option value="Casa">Casa / Chalet</option>
+              <option value="Duplex">Dúplex / PH</option>
+              <option value="Local Comercial">Local Comercial / Oficina</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Calle, Número, Piso y Departamento -->
+        <div class="grid grid-cols-12 gap-2">
+          <div class="col-span-12 sm:col-span-6">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Calle / Avenida *</label>
+            <input type="text" id="inv-street" required placeholder="Ej: Av. Belgrano" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div class="col-span-4 sm:col-span-2">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Número *</label>
+            <input type="text" id="inv-number" required placeholder="1240" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div class="col-span-4 sm:col-span-2">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Piso</label>
+            <input type="text" id="inv-floor" placeholder="3°" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div class="col-span-4 sm:col-span-2">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Depto</label>
+            <input type="text" id="inv-apartment" placeholder="B" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Canon Inicial *</label>
+          <input type="number" id="inv-monthly-rent" required min="1" placeholder="350000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Moneda</label>
+          <select id="inv-currency" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="ARS">ARS</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Duración (Meses)</label>
+          <input type="number" id="inv-duration" value="24" min="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Fecha de Inicio *</label>
+        <input type="date" id="inv-start-date" required style="color-scheme: dark;" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+      </div>
+
+      <!-- 4. CARGA DE CONTRATO PRINCIPAL -->
+      <div class="space-y-1">
+        <label class="block text-xs font-medium text-slate-300">Contrato de Locación (PDF o Documento Firmado) *</label>
+        <input type="file" id="inv-contract-file" accept=".pdf,image/jpeg,image/png" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-semibold file:bg-[#16c2a3]/10 file:text-[#16c2a3] cursor-pointer bg-slate-950 border border-slate-800 rounded-xl" />
+        <p class="text-[9px] text-slate-500">El inquilino podrá consultar este archivo y dar su consentimiento conforme a la Ley 25.326.</p>
+      </div>
+
+      <!-- Enlace Generado -->
+      <div id="inv-link-container" class="hidden p-3 bg-slate-950 border border-emerald-500/30 rounded-xl space-y-2">
+        <span class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Enlace copiado al portapapeles:
+        </span>
+        <div class="flex gap-2">
+          <input type="text" id="inv-generated-link" readonly class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-slate-300 select-all" />
+          <button type="button" id="btn-copiar-enlace-manual" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg transition-colors cursor-pointer">Copiar</button>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+        <button type="button" id="btn-cancelar-invitacion" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-colors cursor-pointer">Cerrar</button>
+        <button type="submit" id="btn-crear-invitacion" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-950/40 transition-all cursor-pointer">
+          <i data-lucide="link" class="w-4 h-4"></i>
+          <span>Generar Enlace</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Recepción y Firma de Invitación Digital (Inquilino) -->
+<div id="modal-recepcion-inquilino" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-5">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+        <i data-lucide="file-signature" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">Invitación a Contrato de Alquiler</h3>
+        <p class="text-xs text-slate-400">Verificá las condiciones y prestá tu consentimiento digital</p>
+      </div>
+    </div>
+
+    <!-- Resumen del Contrato -->
+    <div id="inquilino-resumen-loading" class="text-center py-6 text-slate-400 text-xs">
+      Cargando términos del contrato...
+    </div>
+
+    <div id="inquilino-resumen-content" class="hidden space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
+      <div class="flex justify-between py-1 border-b border-slate-800/60">
+        <span class="text-slate-400">Inmueble:</span>
+        <span id="rec-propiedad" class="font-semibold text-white"></span>
+      </div>
+      <div class="flex justify-between py-1 border-b border-slate-800/60">
+        <span class="text-slate-400">Canon Mensual:</span>
+        <span id="rec-canon" class="font-semibold text-emerald-400"></span>
+      </div>
+      <div class="flex justify-between py-1 border-b border-slate-800/60">
+        <span class="text-slate-400">Inicio y Vigencia:</span>
+        <span id="rec-vigencia" class="font-semibold text-white"></span>
+      </div>
+      <!-- Se agrega border-b para separar del contrato -->
+      <div class="flex justify-between py-1 border-b border-slate-800/60">
+        <span class="text-slate-400">DNI Inquilino:</span>
+        <span id="rec-dni" class="font-semibold text-white"></span>
+      </div>
+      <!-- Último renglón sin border-b -->
+      <div class="flex justify-between py-1">
+        <span class="text-slate-400">Documento Contractual:</span>
+        <a id="rec-contract-link" href="#" target="_blank" class="font-bold text-[#16c2a3] hover:underline flex items-center gap-1">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Ver Contrato Adjunto
+        </a>
+      </div>
+    </div>
+
+    <!-- Declaración Jurada y Consentimiento Expreso (Hábeas Data) -->
+    <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
+      <label class="flex items-start gap-2.5 cursor-pointer">
+        <input type="checkbox" id="check-consentimiento-inquilino" class="mt-1 rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0" />
+        <span class="text-[11px] text-slate-300 leading-relaxed">
+          Presto conformidad y <strong>consentimiento expreso</strong> (Ley 25.326 de Protección de Datos Personales) para el registro de este vínculo locativo en la plataforma Inquilia y la conformación de mi historial de cumplimiento.
+        </span>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <button id="btn-rechazar-invitacion" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-semibold rounded-xl transition-colors">Rechazar</button>
+      <button id="btn-aceptar-invitacion" disabled class="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-950/40 transition-all">
+        <i data-lucide="check" class="w-4 h-4"></i>
+        <span>Aceptar y Firmar Digitalmente</span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- PUNTO DE ENTRADA PRINCIPAL GESTIONADO POR VITE -->
+<!-- MODAL: CARGAR NUEVA PROPIEDAD (INQUILIA BROKER) -->
+<div id="modal-property" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative">
+
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#16c2a3]/10 border border-[#16c2a3]/30 flex items-center justify-center text-[#16c2a3]">
+          <i data-lucide="building-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-white uppercase tracking-wider">Cargar Inmueble a Cartera</h3>
+          <p class="text-[11px] text-slate-400">Inquilia Broker · Inventario Exclusivo CUCIS</p>
+        </div>
+      </div>
+      <button type="button" id="btn-close-property-modal" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <form id="form-property" class="space-y-4 text-xs">
+
+      <!-- 1. Título y Operación -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="sm:col-span-2">
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Título de la Publicación *</label>
+          <input type="text" id="prop-title" required placeholder="Ej: Depto 2 Ambientes c/ Balcón al Frente" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipo de Operación *</label>
+          <select id="prop-operation" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+            <option value="ALQUILER_TRADICIONAL" selected>Alquiler Tradicional</option>
+            <option value="ALQUILER_TEMPORAL">Alquiler Temporal</option>
+            <option value="VENTA">Venta</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2. Ubicación Granular (Censo Inquilia) -->
+      <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+        <span class="text-[10px] uppercase font-bold text-[#16c2a3] tracking-wider block">Ubicación</span>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Provincia *</label>
+            <select id="prop-province" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+              <option value="Salta" selected>Salta</option>
+              <option value="Buenos Aires">Buenos Aires</option>
+              <option value="CABA">Ciudad Autónoma de Buenos Aires</option>
+              <option value="Córdoba">Córdoba</option>
+              <option value="Santa Fe">Santa Fe</option>
+              <option value="Mendoza">Mendoza</option>
+              <option value="Tucumán">Tucumán</option>
+              <option value="Jujuy">Jujuy</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Localidad / Ciudad *</label>
+            <input type="text" id="prop-city" required placeholder="Ej: Salta Capital" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Barrio / Zona *</label>
+            <input type="text" id="prop-neighborhood" required placeholder="Ej: Tres Cerritos" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-2">
+          <div class="col-span-12 sm:col-span-6">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Calle / Avenida *</label>
+            <input type="text" id="prop-street" required placeholder="Ej: Av. Belgrano" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+          <div class="col-span-4 sm:col-span-2">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Número *</label>
+            <input type="text" id="prop-number" required placeholder="1240" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+          <div class="col-span-4 sm:col-span-2">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Piso</label>
+            <input type="text" id="prop-floor" placeholder="3°" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+          <div class="col-span-4 sm:col-span-2">
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Depto</label>
+            <input type="text" id="prop-apartment" placeholder="B" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+        </div>
+      </div>
+
+<!-- 3. Tipología, Medidas y Precios -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <div>
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipología *</label>
+    <select id="prop-type" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+      <option value="Monoambiente">Monoambiente</option>
+      <option value="1 Dormitorio" selected>1 Dormitorio</option>
+      <option value="2 Dormitorios">2 Dormitorios</option>
+      <option value="3 Dormitorios">3 Dormitorios</option>
+      <option value="Casa">Casa / Chalet</option>
+      <option value="Duplex">Dúplex / PH</option>
+      <option value="Local Comercial">Local Comercial</option>
+      <option value="Terreno / Lote">Terreno / Lote</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Sup. Total (m²)</label>
+    <input type="number" id="prop-surface" min="1" placeholder="Ej: 52" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+  </div>
+  <div>
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Moneda *</label>
+    <select id="prop-currency" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+      <option value="ARS" selected>ARS ($)</option>
+      <option value="USD">USD (u$s)</option>
+    </select>
+  </div>
+  <div>
+    <label id="label-prop-price" class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Canon Mensual *</label>
+    <input type="number" id="prop-price" required min="1" placeholder="Ej: 450000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+  </div>
+</div>
+
+<!-- Campos opcionales según la operación (Venta / Temporal) -->
+<div id="prop-extra-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+  <div id="container-prop-expenses" class="hidden">
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Expensas Estimadas (ARS)</label>
+    <input type="number" id="prop-expenses" min="0" placeholder="Ej: 45000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+  </div>
+
+  <div>
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Score Mínimo Requerido (1 a 100)</label>
+    <select id="prop-min-score" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+      <option value="0" selected>Sin requisito (Abierto a todos)</option>
+      <option value="50">Score 50+ (Riesgo Moderado aceptable)</option>
+      <option value="70">Score 70+ (Solvencia Confiable)</option>
+      <option value="80">Score 80+ (Excelente / Perfil Premium)</option>
+    </select>
+  </div>
+
+  <div id="container-prop-credit-apto" class="hidden flex items-center pt-5">
+    <label class="flex items-center gap-2 cursor-pointer bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 w-full">
+      <input type="checkbox" id="prop-credit-apto" class="rounded bg-slate-900 border-slate-700 text-[#16c2a3] focus:ring-0">
+      <span class="text-[11px] font-bold text-white">Apto Crédito Hipotecario</span>
+    </label>
+  </div>
+
+  <div id="container-prop-temporal-min" class="hidden">
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Estadía Mínima (Noches)</label>
+    <input type="number" id="prop-temporal-min" min="1" value="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+  </div>
+
+  <div id="container-prop-temporal-guests" class="hidden">
+    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Capacidad Máxima (Huéspedes)</label>
+    <input type="number" id="prop-temporal-guests" min="1" value="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+  </div>
+</div>
+
+<!-- 4. Fotos Múltiples de la Propiedad -->
+<div>
+  <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fotografías del Inmueble (Hasta 15 fotos) *</label>
+  <input type="file" id="prop-images" accept="image/jpeg,image/png,image/webp" multiple required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-[#16c2a3]/10 file:text-[#16c2a3] file:font-bold cursor-pointer">
+  <p class="text-[9px] text-slate-500 mt-1">Formato JPG, PNG o WEBP. Primera foto se tomará como portada principal.</p>
+</div>
+
+<!-- 5. Descripción con palabras del Inmueble -->
+<div>
+  <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Descripción del Inmueble (Detalles, comodidades, entorno)</label>
+  <textarea id="prop-description" rows="3" placeholder="Ej: Luminoso departamento ubicado en zona residencial. Cuenta con cocina equipada, pisos de parquet, aire acondicionado frío/calor y balcón corrido..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-[#16c2a3]"></textarea>
+</div>
+
+<!-- 6. Opciones Broker: Red CUCIS -->
+<div class="p-3 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
+  <div>
+    <p class="font-bold text-slate-200 text-xs">Compartir en Red Inmobiliaria CUCIS</p>
+    <p class="text-[10px] text-slate-500">Permite a otros corredores matriculados ofrecer tu captación (Co-Brokerage).</p>
+  </div>
+  <label class="relative inline-flex items-center cursor-pointer">
+    <input type="checkbox" id="prop-share-network" checked class="sr-only peer">
+    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#16c2a3]"></div>
+  </label>
+</div>
+
+<!-- Acciones del Modal con Vista Previa -->
+<div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+  <button type="button" id="btn-cancel-property" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer hover:bg-slate-700">
+    Cancelar
+  </button>
+  <div class="flex items-center gap-2">
+    <button type="button" onclick="window.generarPreviewPropiedad()" class="px-4 py-2 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-bold uppercase transition flex items-center gap-1.5 cursor-pointer">
+      <i data-lucide="eye" class="w-3.5 h-3.5"></i> Vista Previa
+    </button>
+    <button type="submit" id="btn-submit-property" class="px-5 py-2 bg-[#16c2a3] text-[#060913] rounded-xl text-xs font-black uppercase shadow-lg hover:bg-emerald-600 cursor-pointer">
+      Guardar Propiedad
+    </button>
+  </div>
+</div>
+
+</form>
+</div>
+</div>
+
+<!-- MODAL: REGISTRAR NUEVO INTERESADO (INQUILIA BROKER CRM) -->
+<div id="modal-lead" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative">
+
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#16c2a3]/10 border border-[#16c2a3]/30 flex items-center justify-center text-[#16c2a3]">
+          <i data-lucide="user-plus" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-white uppercase tracking-wider">Registrar Interesado / Postulante</h3>
+          <p class="text-[11px] text-slate-400">Inquilia Broker · Pipeline Comercial</p>
+        </div>
+      </div>
+      <button type="button" id="btn-close-lead-modal" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <form id="form-lead" class="space-y-4 text-xs">
+
+      <!-- 1. Datos del Interesado -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nombre y Apellido *</label>
+          <input type="text" id="lead-name" required placeholder="Ej: Marcelo Gómez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI (Para Scoring en Buró)</label>
+          <input type="text" id="lead-dni" inputmode="numeric" placeholder="Ej: 32456789 (Sin puntos)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Teléfono Móvil (WhatsApp) *</label>
+          <input type="text" id="lead-phone" required placeholder="Ej: 3874123456" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Email de Contacto</label>
+          <input type="email" id="lead-email" placeholder="postulante@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+      </div>
+
+      <!-- 2. Vinculación con Inmueble del Inventario o Búsqueda Abierta -->
+      <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+        <span class="text-[10px] uppercase font-bold text-[#16c2a3] tracking-wider block">Propiedad de Interés</span>
+        
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Inmueble de Cartera (Opcional)</label>
+          <select id="lead-property-id" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+            <option value="">-- Consulta Abierta / Sin inmueble asignado --</option>
+            <!-- Llenado dinámico desde JS con las propiedades de la inmobiliaria -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Presupuesto Máximo (ARS)</label>
+            <input type="number" id="lead-budget" min="0" placeholder="Ej: 450000" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tipología Buscada</label>
+            <select id="lead-preferred-type" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+              <option value="">Cualquiera</option>
+              <option value="Monoambiente">Monoambiente</option>
+              <option value="1 Dormitorio">1 Dormitorio</option>
+              <option value="2 Dormitorios">2 Dormitorios</option>
+              <option value="3 Dormitorios">3 Dormitorios</option>
+              <option value="Casa">Casa</option>
+              <option value="Local Comercial">Local Comercial</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Notas y Estado Inicial -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="sm:col-span-2">
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Notas / Requerimientos</label>
+          <input type="text" id="lead-notes" placeholder="Ej: Acepta mascota chica, recibo de sueldo de provincia..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Estado *</label>
+          <select id="lead-status" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+            <option value="NUEVO" selected>Nuevo</option>
+            <option value="CONTACTADO">Contactado</option>
+            <option value="EN_EVALUACION">En Evaluación</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button type="button" id="btn-cancel-lead" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer hover:bg-slate-700">
+          Cancelar
+        </button>
+        <button type="submit" id="btn-submit-lead" class="px-5 py-2 bg-[#16c2a3] text-[#060913] rounded-xl text-xs font-black uppercase shadow-lg hover:bg-emerald-600 cursor-pointer">
+          Guardar Interesado
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- MODAL PÚBLICO: CONSULTA DE INTERESADO PARA CATÁLOGO (LEAD CAPTURE) -->
+<div id="modal-public-lead" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="text-xs font-black text-white uppercase tracking-wider">Contactar Inmobiliaria</h3>
+          <p class="text-[10px] text-slate-400">Canal directo verificado</p>
+        </div>
+      </div>
+      <button type="button" onclick="cerrarModalPublicLead()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <!-- Resumen del inmueble que está consultando -->
+    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 mb-4 text-xs">
+      <span class="text-[9px] uppercase tracking-wider text-[#16c2a3] font-bold block" id="modal-lead-prop-op">PROPIEDAD</span>
+      <p class="font-bold text-white text-xs truncate mt-0.5" id="modal-lead-prop-title">-</p>
+      <p class="text-[11px] font-mono text-emerald-400 font-bold" id="modal-lead-prop-price">-</p>
+    </div>
+
+    <form id="form-public-lead" class="space-y-3.5 text-xs">
+      <input type="hidden" id="modal-lead-prop-id" value="">
+      
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tu Nombre y Apellido *</label>
+        <input type="text" id="modal-lead-name" required placeholder="Ej: Marcelo Gómez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Tu WhatsApp *</label>
+          <input type="text" id="modal-lead-phone" required placeholder="Ej: 3874123456" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">DNI (Opcional)</label>
+          <input type="text" id="modal-lead-dni" inputmode="numeric" placeholder="Para certificar solvencia" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#16c2a3]">
+        </div>
+      </div>
+
+      <p class="text-[9px] text-slate-500 leading-relaxed">
+        Tus datos se transmiten de forma cifrada a la inmobiliaria matriculada para dar respuesta formal a tu solicitud.
+      </p>
+
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" onclick="cerrarModalPublicLead()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer hover:bg-slate-700">
+          Cancelar
+        </button>
+        <button type="submit" id="btn-submit-public-lead" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase shadow-lg transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Iniciar Conversación
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL: FICHA DETALLADA DEL INMUEBLE (GALERÍA + DESCRIPCIÓN)       -->
+<!-- ================================================================= -->
+<div id="modal-property-detail" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col text-left animate-fade-in">
+
+    <!-- Cabecera del Modal -->
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60 shrink-0">
+      <div class="flex items-center gap-2 truncate pr-2">
+        <span id="detail-prop-op" class="bg-[#16c2a3]/10 text-[#16c2a3] border border-[#16c2a3]/30 text-[9px] font-black uppercase px-2 py-0.5 rounded-md shrink-0">Alquiler</span>
+        <h3 id="detail-prop-title" class="text-sm font-black text-white uppercase tracking-tight truncate">Detalle de la Propiedad</h3>
+      </div>
+      <button type="button" onclick="cerrarModalDetallePropiedad()" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer shrink-0">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Contenido Scrolleable -->
+    <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+
+      <!-- Visor de Foto Principal y Miniaturas -->
+      <div class="space-y-2">
+        <div class="relative w-full h-64 sm:h-80 bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+          <img id="detail-prop-main-img" src="" alt="Foto Principal" class="w-full h-full object-contain bg-black/40">
+          <span id="detail-prop-price-badge" class="absolute bottom-3 left-3 bg-slate-950/90 backdrop-blur-md text-white font-black text-base px-3 py-1 rounded-xl border border-slate-800 shadow-lg">
+            $0
+          </span>
+        </div>
+        <!-- Galería de Miniaturas -->
+        <div id="detail-prop-thumbnails" class="flex gap-2 overflow-x-auto pb-1">
+          <!-- Miniaturas dinámicas -->
+        </div>
+      </div>
+
+      <!-- Datos Clave y Badges -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div class="bg-slate-950/60 border border-slate-800/80 p-2.5 rounded-xl text-center">
+          <span class="text-[9px] uppercase font-bold text-slate-500 block">Tipología</span>
+          <span id="detail-prop-type" class="text-xs font-bold text-white mt-0.5 block">-</span>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-2.5 rounded-xl text-center">
+          <span class="text-[9px] uppercase font-bold text-slate-500 block">Superficie</span>
+          <span id="detail-prop-surface" class="text-xs font-bold text-white mt-0.5 block">-</span>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-2.5 rounded-xl text-center">
+          <span class="text-[9px] uppercase font-bold text-slate-500 block">Ubicación</span>
+          <span id="detail-prop-city" class="text-xs font-bold text-white mt-0.5 block">-</span>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-2.5 rounded-xl text-center">
+          <span class="text-[9px] uppercase font-bold text-slate-500 block">Buró Requerido</span>
+          <span id="detail-prop-score" class="text-xs font-bold text-[#16c2a3] mt-0.5 block">Abierto</span>
+        </div>
+      </div>
+
+      <!-- Dirección Completa -->
+      <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center gap-2 text-slate-300">
+        <i data-lucide="map-pin" class="w-4 h-4 text-[#16c2a3] shrink-0"></i>
+        <span id="detail-prop-address" class="text-xs font-semibold">Ubicación no especificada</span>
+      </div>
+
+      <!-- Descripción Completa -->
+      <div class="space-y-1.5">
+        <h4 class="text-[11px] uppercase font-bold text-slate-400 tracking-wider">Descripción del Inmueble</h4>
+        <div id="detail-prop-description" class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-200 leading-relaxed whitespace-pre-wrap break-words">
+          Sin descripción detallada.
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie del Modal con Botón de Contacto -->
+    <div class="p-3 sm:p-4 border-t border-slate-800 bg-slate-950/70 flex items-center justify-between gap-3 shrink-0">
+      <span class="text-[10px] text-slate-500 hidden sm:inline">Operación respaldada por la Red Inquilia CUCIS</span>
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button type="button" onclick="cerrarModalDetallePropiedad()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase cursor-pointer">
+          Cerrar
+        </button>
+        <button type="button" id="detail-btn-contact" class="px-5 py-2 bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] rounded-xl text-xs font-black uppercase transition flex items-center gap-1.5 shadow-md cursor-pointer">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> Consultar por WhatsApp
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: VISTA PREVIA (PREVIEW) DEL INMUEBLE -->
+<div id="modal-preview-property" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl relative text-left space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+      <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+        <i data-lucide="eye" class="w-4 h-4"></i> Vista Previa en el Portal
+      </span>
+      <button type="button" onclick="document.getElementById('modal-preview-property').classList.add('hidden')" class="text-slate-400 hover:text-white cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <!-- Tarjeta simulada de cómo se verá -->
+    <div id="preview-card-container"></div>
+
+    <div class="pt-2 border-t border-slate-800 flex justify-end">
+      <button type="button" onclick="document.getElementById('modal-preview-property').classList.add('hidden')" class="px-4 py-1.5 bg-[#16c2a3] text-[#060913] font-bold rounded-lg text-xs uppercase cursor-pointer">
+        Entendido / Volver a la edición
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
