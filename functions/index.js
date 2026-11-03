@@ -5,9 +5,91 @@ const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const crypto = require("crypto"); // Módulo criptográfico nativo de Node.js
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 setGlobalOptions({ maxInstances: 10 });
+
+// ============================================================================
+// CONFIGURACIÓN ASISTENTE QUILI (GEMINI AI)
+// ============================================================================
+const SYSTEM_INSTRUCTION_QUILI = `
+Eres Quili, el asistente oficial de Inteligencia Artificial del ecosistema Inquilia (plataforma inmobiliaria y buró locativo en Argentina, con foco en Salta).
+Tu tono es profesional, cordial, ágil y con un sutil lenguaje argentino natural (sin exagerar).
+
+Tus conocimientos clave son:
+1. MATRIZ DE ROLES:
+   - Corredor Matriculado (AGENCY_OWNER): Gestiona su agencia, tiene bolsa compartida de créditos, carga propiedades (ventas/alquileres), activa Co-Brokerage CUCIS y audita leads con el botón "Auditar en Buró".
+   - Agente Dependiente (AGENCY_EMPLOYEE): Carga captaciones bajo supervisión de su agencia, gestiona leads en el CRM y emite contratos debitando de la bolsa corporativa.
+   - Propietario Directo (LANDLORD): Consulta perfiles en el Buró por DNI, certifica contratos con censo nacional y genera invitaciones digitales (tokens de 72 hs). No puede publicar inventario de propiedades.
+   - Inquilino (TENANT / GUEST): Explora el portal público seguro (100% corredores matriculados CUCIS verificados), envía consultas directas a WhatsApp y ejerce el derecho de Rectificación (Ley 25.326 Art. 16).
+
+2. NORMATIVA Y COMPLIANCE:
+   - Ley Nacional 25.326 (Hábeas Data): El inquilino puede solicitar rectificación de datos; corre un plazo perentorio de 5 días hábiles para resolver el legajo.
+   - DNU 70/2023: Absoluta libertad contractual en moneda (ARS/USD), plazos y fórmulas de ajuste (ICL/IPC).
+   - Impuesto de Sellos Salta: 1% sobre el valor total del contrato habitacional ante DGR Salta.
+   - Corretaje CUCIS: La intermediación y la red de Co-Brokerage es exclusiva de profesionales habilitados.
+
+3. REGLAS DE SEGURIDAD ESTRICTAS:
+   - NUNCA reveles ni consultes DNIs de personas ni inventes datos de terceros.
+   - Orienta siempre al usuario a la pantalla correspondiente: "Consultar Perfil", "Contratos", "Propiedades Broker", "Buscar Inmuebles" o "Planes y Precios".
+   - Sé claro, conciso (máximo 2 a 3 párrafos cortos) y usa viñetas cuando expliques pasos.
+`;
+
+const quiliApiKey = (process.env.GEMINI_API_KEY || "").trim();
+const quiliGenAI = quiliApiKey ? new GoogleGenerativeAI(quiliApiKey) : null;
+
+exports.consultarQuiliIA = onRequest({ 
+  cors: true, 
+  timeoutSeconds: 30, 
+  memory: "512MiB" // Más CPU = respuesta mucho más rápida
+}, async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).send("");
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
+  }
+
+  const { prompt } = req.body || {};
+  if (!prompt || typeof prompt !== "string") {
+    return res.status(400).json({ error: "Falta el prompt de consulta." });
+  }
+
+  const client = quiliGenAI || (process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY.trim()) : null);
+  if (!client) {
+    logger.error("ALERTA: GEMINI_API_KEY no encontrada");
+    return res.status(200).json({ reply: "Falta configurar la clave de IA en el servidor." });
+  }
+
+  try {
+    const model = client.getGenerativeModel({
+      model: "gemini-3.5-flash-lite",
+      systemInstruction: SYSTEM_INSTRUCTION_QUILI,
+      generationConfig: {
+        maxOutputTokens: 600, // Acota la longitud para máxima velocidad
+        temperature: 0.3      // Respuestas concisas y directas
+      }
+    });
+
+    const result = await model.generateContent(prompt);
+    const replyText = result.response.text();
+
+    return res.status(200).json({ reply: replyText });
+  } catch (error) {
+    logger.error("Error al consultar Quili IA:", error);
+    return res.status(200).json({ 
+      reply: "Disculpá, tuve una demora al procesar tu consulta. Por favor intentá de nuevo." 
+    });
+  }
+});
 
 // ============================================================================
 // UTILIDADES DE CICLO DE FACTURACIÓN Y VENCIMIENTO
@@ -341,14 +423,14 @@ exports.ejecutarConsultaInmobiliaria = onCall(async (request) => {
 });
 
 // ============================================================================
-// 4. CONTRATACIÓN DE PACKS Y SUSCRIPCIONES (MERCADO PAGO)
+// 4. CONTRATACIÓN DE PACKS CON CÓDIGOS Y BYPASS 100% GRATIS
 // ============================================================================
 exports.iniciarContratacionPack = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Debés iniciar sesión para contratar un pack.");
   }
 
-  const { packId, mode = "ONE_TIME" } = request.data;
+  const { packId, mode = "ONE_TIME", discountCode = null } = request.data;
   const pack = CREDIT_PACKS[packId];
 
   if (!pack) {
@@ -374,10 +456,100 @@ exports.iniciarContratacionPack = onCall(async (request) => {
     targetDocId = userData.agencyId || uid;
   }
 
-  const mpAccessToken = process.env.MP_ACCESS_TOKEN;
-  if (!mpAccessToken) {
-    throw new HttpsError("internal", "Falta configurar MP_ACCESS_TOKEN en el servidor (functions/.env).");
+  // --- INICIO LÓGICA DE DESCUENTOS Y CÓDIGO MAESTRO ---
+  let finalPrice = pack.price;
+  let appliedPromo = null;
+  const CODIGO_MAESTRO = "INQMATGEO100"; // <--- CAMBIÁ ESTO POR TU CÓDIGO SECRETO
+
+  if (discountCode) {
+    const cleanCode = String(discountCode).trim().toUpperCase();
+    
+    // 1. Verificar si es el Código Maestro
+    if (cleanCode === CODIGO_MAESTRO) {
+      finalPrice = 0;
+      appliedPromo = "MASTER_FREE";
+    } 
+    // 2. Si no es el maestro, buscar en la colección de Firestore
+    else {
+      const promoSnap = await db.collection("promocodes").doc(cleanCode).get();
+      if (promoSnap.exists) {
+        const promoData = promoSnap.data();
+        const now = new Date();
+        const isExpired = promoData.expiresAt && promoData.expiresAt.toDate() < now;
+        const isExhausted = promoData.maxUses && promoData.currentUses >= promoData.maxUses;
+
+        if (promoData.active && !isExpired && !isExhausted) {
+          if (promoData.type === "PERCENTAGE") {
+            finalPrice = finalPrice - (finalPrice * (promoData.value / 100));
+          } else if (promoData.type === "FIXED") {
+            finalPrice = Math.max(0, finalPrice - promoData.value);
+          }
+          appliedPromo = cleanCode;
+          
+          await promoSnap.ref.update({
+            currentUses: admin.firestore.FieldValue.increment(1)
+          });
+        } else {
+          throw new HttpsError("failed-precondition", "El código de descuento ingresado está vencido o agotado.");
+        }
+      } else {
+        throw new HttpsError("not-found", "El código de descuento no es válido.");
+      }
+    }
   }
+  // --- FIN LÓGICA DE DESCUENTOS ---
+
+  // --- BYPASS: SI EL PRECIO ES 0, ACREDITAMOS DIRECTO SIN MERCADO PAGO ---
+  if (finalPrice <= 0) {
+    const targetRef = db.collection(pack.targetCollection).doc(targetDocId);
+    const paymentDate = new Date();
+    // Reutilizamos tu función calcularVencimientoCiclo
+    const expiresAtDate = calcularVencimientoCiclo(paymentDate, false); 
+
+    await db.runTransaction(async (transaction) => {
+      const targetSnap = await transaction.get(targetRef);
+      const currentData = targetSnap.exists ? targetSnap.data() : {};
+      const balanceBefore = currentData.creditos || 0;
+      const newCredits = Number(pack.credits) || 0;
+      const balanceAfter = pack.targetCollection === "agencies" ? newCredits : (balanceBefore + newCredits);
+
+      transaction.update(targetRef, {
+        creditos: balanceAfter,
+        activePlan: packId,
+        billingCycleStart: admin.firestore.Timestamp.fromDate(paymentDate),
+        creditsExpiresAt: admin.firestore.Timestamp.fromDate(expiresAtDate),
+        subscriptionStatus: "none", // No hay débito real en MP
+        "metadata.updatedAt": admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      const txnRef = db.collection("credit_transactions").doc();
+      transaction.set(txnRef, {
+        agencyId: pack.targetCollection === "agencies" ? targetDocId : null,
+        actorUid: uid,
+        type: "PACK_PURCHASE_FREE",
+        amount: newCredits,
+        balanceBefore,
+        balanceAfter,
+        paymentId: "promo_" + appliedPromo,
+        amountPaidArs: 0,
+        packId: packId,
+        expiresAt: admin.firestore.Timestamp.fromDate(expiresAtDate),
+        description: `Bonificación 100% (${pack.title}) - Código: ${appliedPromo}`,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    return { 
+      mode: "FREE_BYPASS", 
+      success: true, 
+      message: "¡Código Maestro aplicado! Tu pack fue acreditado de forma gratuita.",
+      initPoint: null // Clave para que el frontend sepa que no hay que ir a MP
+    };
+  }
+
+  // --- FLUJO NORMAL DE MERCADO PAGO (PARA PAGOS MAYORES A $0) ---
+  const mpAccessToken = process.env.MP_ACCESS_TOKEN;
+  if (!mpAccessToken) throw new HttpsError("internal", "Falta configurar MP_ACCESS_TOKEN.");
 
   const externalReference = JSON.stringify({
     targetCollection: pack.targetCollection,
@@ -385,94 +557,65 @@ exports.iniciarContratacionPack = onCall(async (request) => {
     credits: pack.credits,
     packId: packId,
     actorUid: uid,
-    isSubscription: mode === "SUBSCRIPTION"
+    isSubscription: mode === "SUBSCRIPTION",
+    promoCode: appliedPromo
   });
 
   try {
     if (mode === "SUBSCRIPTION") {
       const payerEmail = userData.emailLegal || (request.auth.token?.email && !request.auth.token.email.endsWith("@inquilia.local") ? request.auth.token.email : null);
-
-      if (!payerEmail) {
-        throw new HttpsError(
-          "failed-precondition",
-          "Debés tener un correo electrónico válido registrado en Configuración para adherir al débito automático."
-        );
-      }
+      if (!payerEmail) throw new HttpsError("failed-precondition", "Debés tener un correo válido registrado para adherir al débito.");
 
       const preapprovalPayload = {
         payer_email: payerEmail,
         back_url: "https://www.inquilia.com.ar/",
-        reason: pack.title,
+        reason: appliedPromo ? `${pack.title} (Promo: ${appliedPromo})` : pack.title,
         external_reference: externalReference,
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
-          transaction_amount: pack.price,
+          transaction_amount: finalPrice,
           currency_id: "ARS"
         }
       };
 
       const response = await fetch("https://api.mercadopago.com/preapproval", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${mpAccessToken}`,
-          "Content-Type": "application/json"
-        },
+        headers: { "Authorization": `Bearer ${mpAccessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify(preapprovalPayload)
       });
 
       const subData = await response.json();
-      if (!response.ok) {
-        logger.error("Error Mercado Pago PreApproval:", subData);
-        throw new HttpsError("internal", subData.message || "Error al crear la suscripción en Mercado Pago.");
-      }
-
-      return {
-        mode: "SUBSCRIPTION",
-        id: subData.id,
-        initPoint: subData.init_point
-      };
+      if (!response.ok) throw new HttpsError("internal", subData.message || "Error al crear la suscripción en MP.");
+      return { mode: "SUBSCRIPTION", id: subData.id, initPoint: subData.init_point };
 
     } else {
       const { MercadoPagoConfig, Preference } = require("mercadopago");
       const client = new MercadoPagoConfig({ accessToken: mpAccessToken });
       const preference = new Preference(client);
-
       const notificationUrl = process.env.MP_WEBHOOK_URL || "https://webhookmercadopago-4lyqkmj5ra-uc.a.run.app";
 
       const prefResponse = await preference.create({
         body: {
-          items: [
-            {
-              id: packId,
-              title: pack.title,
-              quantity: 1,
-              unit_price: pack.price,
-              currency_id: "ARS"
-            }
-          ],
+          items: [{
+            id: packId,
+            title: appliedPromo ? `${pack.title} (Promo: ${appliedPromo})` : pack.title,
+            quantity: 1,
+            unit_price: finalPrice,
+            currency_id: "ARS"
+          }],
           external_reference: externalReference,
           notification_url: notificationUrl,
-          back_urls: {
-            success: "https://www.inquilia.com.ar/",
-            failure: "https://www.inquilia.com.ar/",
-            pending: "https://www.inquilia.com.ar/"
-          },
+          back_urls: { success: "https://www.inquilia.com.ar/", failure: "https://www.inquilia.com.ar/", pending: "https://www.inquilia.com.ar/" },
           auto_return: "approved"
         }
       });
-
-      return {
-        mode: "ONE_TIME",
-        id: prefResponse.id,
-        initPoint: prefResponse.init_point
-      };
+      return { mode: "ONE_TIME", id: prefResponse.id, initPoint: prefResponse.init_point };
     }
-
   } catch (error) {
-    logger.error("Error creando preferencia/suscripción en Mercado Pago:", error);
+    logger.error("Error creando preferencia en MP:", error);
     if (error instanceof HttpsError) throw error;
-    throw new HttpsError("internal", error.message || "No se pudo conectar con Mercado Pago. Verifique las credenciales.");
+    throw new HttpsError("internal", "No se pudo conectar con Mercado Pago.");
   }
 });
 
@@ -1458,4 +1601,244 @@ exports.notificarInicioDisputaLey25326 = onDocumentUpdated({
   }
 
   return null;
+});
+
+// ============================================================================
+// 15. OCR DE VALIDACIÓN DE IDENTIDAD Y CREDENCIAL (CON PROMO FREE TRIAL)
+// ============================================================================
+
+// Variable global para configurar la duración de la promoción (en meses)
+const MESES_DE_PRUEBA = 3; 
+const CREDITOS_DE_PRUEBA = 150; // Cantidad de consultas gratis para la promo
+
+// A. Registro inicial (DNI + Credencial CUCIS)
+exports.verifyDocumentOcr = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Debe iniciar sesión para verificar documentos.");
+  }
+
+  const { dniFilePath, credentialFilePath, inputDni, inputMatricula } = request.data || {};
+
+  if (!dniFilePath || !credentialFilePath || !inputDni || !inputMatricula) {
+    throw new HttpsError("invalid-argument", "Faltan parámetros requeridos para la verificación.");
+  }
+
+  try {
+    const vision = require("@google-cloud/vision");
+    const visionClient = new vision.ImageAnnotatorClient();
+    const bucket = admin.storage().bucket();
+
+    async function getTextFromFile(filePath) {
+      const file = bucket.file(filePath);
+      const [buffer] = await file.download();
+      const [result] = await visionClient.textDetection(buffer);
+      return result.fullTextAnnotation ? result.fullTextAnnotation.text : "";
+    }
+
+    const dniText = await getTextFromFile(dniFilePath);
+    const credentialText = await getTextFromFile(credentialFilePath);
+
+    const cleanDniText = dniText.replace(/\D/g, "");
+    const cleanCredentialText = credentialText.replace(/\D/g, "");
+    const cleanInputDni = String(inputDni).replace(/\D/g, "");
+    const cleanMatricula = String(inputMatricula).replace(/\D/g, "");
+
+    const dniValid = cleanDniText.includes(cleanInputDni);
+    if (!dniValid) {
+      throw new HttpsError("permission-denied", "El DNI de la imagen no coincide con el número ingresado.");
+    }
+
+    const credentialMatch = cleanCredentialText.includes(cleanMatricula) || cleanCredentialText.includes(cleanInputDni);
+    if (!credentialMatch) {
+      throw new HttpsError("permission-denied", "La credencial de CUCIS no es válida o no coincide con los datos.");
+    }
+
+    const userId = request.auth.uid;
+    
+    // Calcular fecha de vencimiento de la promo
+    const fechaVencimiento = new Date();
+    fechaVencimiento.setMonth(fechaVencimiento.getMonth() + MESES_DE_PRUEBA);
+
+    // 1. Actualizar el perfil del usuario
+    await admin.firestore().collection("users").doc(userId).update({
+      role: "AGENCY_OWNER",
+      roles: ["AGENCY_OWNER", "LANDLORD"],
+      agencyId: userId,
+      nroMatricula: cleanMatricula,
+      status: "ACTIVO",
+      subscriptionActive: false,
+      ocrVerified: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 2. Crear el registro de la Inmobiliaria con los créditos promocionales
+    await admin.firestore().collection("agencies").doc(userId).set({
+      nroMatricula: cleanMatricula,
+      creditos: CREDITOS_DE_PRUEBA,
+      activePlan: "PROMO_LANZAMIENTO",
+      subscriptionStatus: "none",
+      creditsExpiresAt: admin.firestore.Timestamp.fromDate(fechaVencimiento),
+      ownerUid: userId,
+      status: "ACTIVO",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return { success: true, message: `¡Documentación validada! Se te otorgaron ${MESES_DE_PRUEBA} meses gratis de prueba.` };
+  } catch (error) {
+    logger.error("Error en verifyDocumentOcr Cloud Function:", error);
+    if (error instanceof HttpsError) throw error;
+    throw new HttpsError("internal", error.message || "Error interno al procesar los documentos.");
+  }
+});
+
+// B. Upgrade a Matriculado CUCIS desde Configuración (Solo Credencial)
+exports.verifyCredentialOcr = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Debe iniciar sesión para verificar la credencial.");
+  }
+
+  const { userId, credentialFilePath, inputMatricula, nombreFantasia } = request.data || {};
+
+  if (!userId || !credentialFilePath || !inputMatricula) {
+    throw new HttpsError("invalid-argument", "Faltan parámetros requeridos para la verificación.");
+  }
+
+  try {
+    const vision = require("@google-cloud/vision");
+    const visionClient = new vision.ImageAnnotatorClient();
+    const bucket = admin.storage().bucket();
+
+    const userRef = admin.firestore().collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      throw new HttpsError("not-found", "No se encontró el registro del usuario.");
+    }
+    
+    const userData = userDoc.data();
+    const userDni = userData.dni ? String(userData.dni).replace(/\D/g, "") : "";
+
+    async function getTextFromFile(filePath) {
+      const file = bucket.file(filePath);
+      const [buffer] = await file.download();
+      const [result] = await visionClient.textDetection(buffer);
+      return result.fullTextAnnotation ? result.fullTextAnnotation.text : "";
+    }
+
+    const credentialText = await getTextFromFile(credentialFilePath);
+    const cleanCredentialText = credentialText.replace(/\D/g, "");
+    const cleanMatricula = String(inputMatricula).replace(/\D/g, "");
+
+    const credentialMatch = cleanCredentialText.includes(cleanMatricula) || (userDni && cleanCredentialText.includes(userDni));
+
+    if (!credentialMatch) {
+      throw new HttpsError("permission-denied", "La credencial de CUCIS no es válida o no coincide con los datos del titular.");
+    }
+
+    let otherRoles = (userData.roles || [userData.role || "LANDLORD"])
+      .map(r => (r === "PARTICULAR" || r === "PARTICULAR_PROPIETARIO") ? "LANDLORD" : r)
+      .filter(r => r !== "AGENCY_OWNER" && r !== "MATRICULADO_CUCIS");
+
+    if (!otherRoles.includes("LANDLORD")) otherRoles.push("LANDLORD");
+    const currentRoles = ["AGENCY_OWNER", ...new Set(otherRoles)];
+    
+    const nombreF = nombreFantasia ? nombreFantasia.trim() : (userData.nombreFantasia || "Inmobiliaria");
+
+    // Calcular fecha de vencimiento de la promo
+    const fechaVencimiento = new Date();
+    fechaVencimiento.setMonth(fechaVencimiento.getMonth() + MESES_DE_PRUEBA);
+
+    // 1. Actualizar el perfil del usuario
+    await userRef.update({
+      nroMatricula: cleanMatricula,
+      nombreFantasia: nombreF,
+      roles: currentRoles,
+      role: "AGENCY_OWNER",
+      agencyId: userId,
+      ocrVerified: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 2. Crear el registro de la Inmobiliaria con los créditos promocionales
+    await admin.firestore().collection("agencies").doc(userId).set({
+      name: nombreF,
+      nroMatricula: cleanMatricula,
+      creditos: CREDITOS_DE_PRUEBA,
+      activePlan: "PROMO_LANZAMIENTO",
+      subscriptionStatus: "none",
+      creditsExpiresAt: admin.firestore.Timestamp.fromDate(fechaVencimiento),
+      ownerUid: userId,
+      status: "ACTIVO",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return { success: true, message: `¡Perfil activado! Se te otorgaron ${MESES_DE_PRUEBA} meses gratis de prueba.` };
+  } catch (error) {
+    logger.error("Error en verifyCredentialOcr Cloud Function:", error);
+    if (error instanceof HttpsError) throw error;
+    throw new HttpsError("internal", error.message || "Error interno al procesar la credencial.");
+  }
+});
+
+// ============================================================================
+// 16. BOTÓN DE ARREPENTIMIENTO Y CANCELACIÓN DE SUSCRIPCIÓN (LEY 24.240)
+// ============================================================================
+exports.solicitarBajaServicio = onCall(async (request) => {
+  const { dni, email } = request.data || {};
+  if (!dni || !email) {
+    throw new HttpsError("invalid-argument", "DNI y Correo Electrónico son obligatorios.");
+  }
+
+  try {
+    const db = admin.firestore();
+    // 1. Buscar al usuario por el DNI ingresado
+    const usersSnap = await db.collection("users").where("dni", "==", dni).limit(1).get();
+    
+    let mensaje = "Se ha registrado tu solicitud de arrepentimiento/baja. Nos contactaremos a la brevedad por correo electrónico.";
+
+    if (!usersSnap.empty) {
+      const userData = usersSnap.docs[0].data();
+      const targetDocId = userData.agencyId || usersSnap.docs[0].id;
+      const targetCollection = userData.agencyId ? "agencies" : "users";
+
+      // 2. Verificar si la entidad tiene una suscripción activa
+      const targetSnap = await db.collection(targetCollection).doc(targetDocId).get();
+      if (targetSnap.exists) {
+        const targetData = targetSnap.data();
+        const subId = targetData.subscriptionId;
+        const subStatus = targetData.subscriptionStatus;
+
+        // 3. Si tiene suscripción, la cancelamos por API en Mercado Pago
+        if (subId && subStatus === "authorized") {
+          const mpAccessToken = process.env.MP_ACCESS_TOKEN;
+          if (mpAccessToken) {
+            // Node 18+ soporta fetch nativo
+            const response = await fetch(`https://api.mercadopago.com/preapproval/${subId}`, {
+              method: "PUT",
+              headers: {
+                "Authorization": `Bearer ${mpAccessToken}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ status: "cancelled" })
+            });
+
+            if (response.ok) {
+              await db.collection(targetCollection).doc(targetDocId).update({
+                subscriptionStatus: "cancelled",
+                "metadata.cancelledAt": admin.firestore.FieldValue.serverTimestamp()
+              });
+              mensaje = "Tu débito automático mensual fue cancelado con éxito. Tus créditos vigentes se mantendrán hasta el fin del ciclo actual.";
+            } else {
+              logger.error("Error al cancelar suscripción en MP:", await response.json());
+            }
+          }
+        }
+      }
+    }
+
+    return { success: true, message: mensaje };
+  } catch (error) {
+    logger.error("Error en solicitarBajaServicio:", error);
+    throw new HttpsError("internal", "No se pudo procesar la baja automáticamente. Por favor, escribinos a soporte.");
+  }
 });

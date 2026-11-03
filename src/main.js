@@ -14,6 +14,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage
 import { storage } from "./config/firebase.js";
 import { createPropertyRecord, getAgencyProperties, updatePropertyStatus, getNetworkProperties, matchPropertiesForLead, getPublicAgencyCatalog } from "./services/propertyService.js";
 import { createLeadRecord, getAgencyLeads, updateLeadStatus } from "./services/leadService.js";
+import { initQuiliWidget } from './quili-widget.js';
 
 let currentUser = null;
 let activeOnboardingRole = 'PARTICULAR_PROPIETARIO';
@@ -197,6 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
   attachStrictNumericSanitizers();
   setupDigitalInvitationFlow();
   checkInvitationTokenOnLoad();
+  initQuiliWidget();
 
   const urlParams = new URLSearchParams(window.location.search);
   const verifyContractId = urlParams.get('c');
@@ -1021,96 +1023,96 @@ function setupGlobalListeners() {
   // ==========================================
 // EVENTOS DEL MODAL DE LEADS / INTERESADOS
 // ==========================================
-  const modalLead = document.getElementById('modal-lead');
-  const btnNuevoLead = document.getElementById('btn-nuevo-lead');
-  const btnCloseLead = document.getElementById('btn-close-lead-modal');
-  const btnCancelLead = document.getElementById('btn-cancel-lead');
-  const formLead = document.getElementById('form-lead');
-  const selectLeadProp = document.getElementById('lead-property-id');
+const modalLead = document.getElementById('modal-lead');
+const btnNuevoLead = document.getElementById('btn-nuevo-lead');
+const btnCloseLead = document.getElementById('btn-close-lead-modal');
+const btnCancelLead = document.getElementById('btn-cancel-lead');
+const formLead = document.getElementById('form-lead');
+const selectLeadProp = document.getElementById('lead-property-id');
 
-  if (btnNuevoLead) {
-   btnNuevoLead.addEventListener('click', () => {
-     if (formLead) formLead.reset();
+if (btnNuevoLead) {
+ btnNuevoLead.addEventListener('click', () => {
+   if (formLead) formLead.reset();
 
    // Llenar combo de propiedades disponibles con las del caché
-     if (selectLeadProp) {
-       selectLeadProp.innerHTML = `<option value="">-- Consulta Abierta / Sin inmueble asignado --</option>` +
-       cachedProperties.map(p => `<option value="${p.id}">${escapeHtml(p.title)} ($${Number(p.price).toLocaleString('es-AR')})</option>`).join('');
-     }
+   if (selectLeadProp) {
+     selectLeadProp.innerHTML = `<option value="">-- Consulta Abierta / Sin inmueble asignado --</option>` +
+     cachedProperties.map(p => `<option value="${p.id}">${escapeHtml(p.title)} ($${Number(p.price).toLocaleString('es-AR')})</option>`).join('');
+   }
 
-     modalLead?.classList.remove('hidden');
-     modalLead?.classList.add('flex');
-   });
+   modalLead?.classList.remove('hidden');
+   modalLead?.classList.add('flex');
+ });
+}
+
+const cerrarModalLead = () => {
+ modalLead?.classList.add('hidden');
+ modalLead?.classList.remove('flex');
+};
+
+btnCloseLead?.addEventListener('click', cerrarModalLead);
+btnCancelLead?.addEventListener('click', cerrarModalLead);
+
+formLead?.addEventListener('submit', async (e) => {
+ e.preventDefault();
+ const submitBtn = document.getElementById('btn-submit-lead');
+ if (submitBtn) {
+   submitBtn.disabled = true;
+   submitBtn.innerText = "Guardando...";
  }
 
- const cerrarModalLead = () => {
-   modalLead?.classList.add('hidden');
-   modalLead?.classList.remove('flex');
- };
+ try {
+   const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+   const userData = userDoc.exists() ? userDoc.data() : {};
 
- btnCloseLead?.addEventListener('click', cerrarModalLead);
- btnCancelLead?.addEventListener('click', cerrarModalLead);
+   const propId = selectLeadProp?.value || null;
+   let propTitle = 'Búsqueda Abierta';
+   if (propId) {
+     const found = cachedProperties.find(p => p.id === propId);
+     if (found) propTitle = found.title;
+   }
 
- formLead?.addEventListener('submit', async (e) => {
-   e.preventDefault();
-   const submitBtn = document.getElementById('btn-submit-lead');
+   const leadPayload = {
+     name: document.getElementById('lead-name')?.value || '',
+     dni: document.getElementById('lead-dni')?.value || '',
+     phone: document.getElementById('lead-phone')?.value || '',
+     email: document.getElementById('lead-email')?.value || '',
+     propertyId: propId,
+     propertyTitle: propTitle,
+     budget: document.getElementById('lead-budget')?.value || 0,
+     preferredType: document.getElementById('lead-preferred-type')?.value || '',
+     notes: document.getElementById('lead-notes')?.value || '',
+     status: document.getElementById('lead-status')?.value || 'NUEVO',
+     agencyId: userData.agencyId || currentUser.uid
+   };
+
+   await createLeadRecord(leadPayload);
+
+   showToast("¡Interesado Guardado!", "El postulante fue incorporado al pipeline comercial.", "success");
+   cerrarModalLead();
+   if (currentUser && typeof loadLeadsView === 'function') {
+     await loadLeadsView(currentUser);
+   }
+ } catch (err) {
+   console.error("Error al registrar lead:", err);
+   showToast("Error", err.message || "No se pudo registrar al interesado.", "error");
+ } finally {
    if (submitBtn) {
-     submitBtn.disabled = true;
-     submitBtn.innerText = "Guardando...";
+     submitBtn.disabled = false;
+     submitBtn.innerText = "Guardar Interesado";
    }
+ }
+});
 
-   try {
-     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-     const userData = userDoc.exists() ? userDoc.data() : {};
-
-     const propId = selectLeadProp?.value || null;
-     let propTitle = 'Búsqueda Abierta';
-     if (propId) {
-       const found = cachedProperties.find(p => p.id === propId);
-       if (found) propTitle = found.title;
-     }
-
-     const leadPayload = {
-       name: document.getElementById('lead-name')?.value || '',
-       dni: document.getElementById('lead-dni')?.value || '',
-       phone: document.getElementById('lead-phone')?.value || '',
-       email: document.getElementById('lead-email')?.value || '',
-       propertyId: propId,
-       propertyTitle: propTitle,
-       budget: document.getElementById('lead-budget')?.value || 0,
-       preferredType: document.getElementById('lead-preferred-type')?.value || '',
-       notes: document.getElementById('lead-notes')?.value || '',
-       status: document.getElementById('lead-status')?.value || 'NUEVO',
-       agencyId: userData.agencyId || currentUser.uid
-     };
-
-     await createLeadRecord(leadPayload);
-
-     showToast("¡Interesado Guardado!", "El postulante fue incorporado al pipeline comercial.", "success");
-     cerrarModalLead();
-     if (currentUser && typeof loadLeadsView === 'function') {
-       await loadLeadsView(currentUser);
-     }
-   } catch (err) {
-     console.error("Error al registrar lead:", err);
-     showToast("Error", err.message || "No se pudo registrar al interesado.", "error");
-   } finally {
-     if (submitBtn) {
-       submitBtn.disabled = false;
-       submitBtn.innerText = "Guardar Interesado";
-     }
-   }
- });
-
- const filterStatusSelect = document.getElementById('filter-lead-status');
- filterStatusSelect?.addEventListener('change', () => {
-   renderLeadsList(cachedLeads, filterStatusSelect.value);
- });
+const filterStatusSelect = document.getElementById('filter-lead-status');
+filterStatusSelect?.addEventListener('change', () => {
+ renderLeadsList(cachedLeads, filterStatusSelect.value);
+});
  // Filtros combinados de Inventario de Propiedades (Operación + Estado)
- const filterOpSelect = document.getElementById('filter-prop-operation');
- const filterStatSelect = document.getElementById('filter-prop-status');
+const filterOpSelect = document.getElementById('filter-prop-operation');
+const filterStatSelect = document.getElementById('filter-prop-status');
 
- const aplicarFiltrosInventario = () => {
+const aplicarFiltrosInventario = () => {
   const op = filterOpSelect?.value || 'ALL';
   const st = filterStatSelect?.value || 'ALL';
   const baseList = activePropertySubTab === 'OWN' ? cachedProperties : cachedNetworkProperties;
@@ -2872,6 +2874,9 @@ async function loadAccountView(user) {
   const warningBanner = document.getElementById('account-sub-warning');
   const warningMsg = document.getElementById('account-sub-warning-msg');
 
+  // Elementos de la baja
+  const btnBaja = document.getElementById('btn-account-baja');
+
   const agencySection = document.getElementById('account-agency-packs');
   const landlordSection = document.getElementById('account-landlord-packs');
   const employeeNotice = document.getElementById('account-employee-notice');
@@ -2918,15 +2923,19 @@ async function loadAccountView(user) {
       if (isSubActive) {
         subEl.innerText = "Activo (Cobro mensual)";
         subEl.className = "text-sm font-black text-[#16c2a3] mt-1.5 block";
+        if (btnBaja) btnBaja.classList.remove('hidden'); // <-- Muestra el botón de baja
       } else if (isCancelled) {
         subEl.innerText = "Cancelado en Mercado Pago";
         subEl.className = "text-sm font-black text-rose-400 mt-1.5 block";
+        if (btnBaja) btnBaja.classList.add('hidden'); // <-- Oculta el botón
       } else if (isPaused) {
         subEl.innerText = "Pausado en Mercado Pago";
         subEl.className = "text-sm font-black text-amber-400 mt-1.5 block";
+        if (btnBaja) btnBaja.classList.add('hidden'); // <-- Oculta el botón
       } else {
         subEl.innerText = "Inactivo (Pago manual)";
         subEl.className = "text-sm font-black text-slate-400 mt-1.5 block";
+        if (btnBaja) btnBaja.classList.add('hidden'); // <-- Oculta el botón
       }
 
       if (warningBanner && warningMsg) {
@@ -3009,22 +3018,38 @@ window.contratarPack = async (packId, mode = 'ONE_TIME') => {
     return;
   }
 
-  try {
-    showToast("Conectando con Mercado Pago", "Generando orden segura de pago...", "success");
+try {
+    showToast("Procesando...", "Validando orden y promociones...", "success");
     const functions = getFunctions(auth.app, "us-central1");
     const iniciarContratacion = httpsCallable(functions, "iniciarContratacionPack");
 
-    const result = await iniciarContratacion({ packId, mode });
+    // 1. Agregamos el discountCode a la petición
+    const result = await iniciarContratacion({ 
+      packId, 
+      mode,
+      discountCode: typeof appliedPromoCode !== 'undefined' ? appliedPromoCode : null 
+    });
+    
     const data = result.data;
 
-    if (data && data.initPoint) {
+    // 2. Manejamos el caso 100% gratis (Código Maestro o promo total)
+    if (data && data.mode === "FREE_BYPASS") {
+      showToast("¡Promoción Aplicada!", data.message || "Pack acreditado con éxito.", "success");
+      setTimeout(() => {
+        window.location.reload(); // Recarga para actualizar los créditos en pantalla
+      }, 1500);
+    } 
+    // 3. Manejamos el flujo normal (Pago parcial o sin promo)
+    else if (data && data.initPoint) {
       window.location.href = data.initPoint;
-    } else {
+    } 
+    else {
       throw new Error("No se recibió el enlace de pago desde el servidor.");
     }
+    
   } catch (err) {
     console.error("Error al iniciar pago:", err);
-    showToast("Error de Pasarela", err.message || "No se pudo iniciar la operación en Mercado Pago.", "error");
+    showToast("Error", err.message || "No se pudo procesar la contratación.", "error");
   }
 };
 
@@ -4929,19 +4954,19 @@ function renderPropertiesGrid(properties) {
       opBadge = `
         <span class="inline-flex items-center gap-1.5 bg-[#060913] text-indigo-300 border border-indigo-500 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
           <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Venta
-        </span>`;
+      </span>`;
       priceSuffix = '';
     } else if (operation === 'ALQUILER_TEMPORAL') {
       opBadge = `
         <span class="inline-flex items-center gap-1.5 bg-[#060913] text-amber-300 border border-amber-500 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
           <span class="w-2 h-2 rounded-full bg-amber-400"></span> Temporal
-        </span>`;
+      </span>`;
       priceSuffix = '<span class="text-[10px] text-slate-400 font-normal"> / noche</span>';
     } else {
       opBadge = `
         <span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-[#16c2a3] text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
           <span class="w-2 h-2 rounded-full bg-[#16c2a3]"></span> Alquiler
-        </span>`;
+      </span>`;
       priceSuffix = '<span class="text-[10px] text-slate-400 font-normal"> / mes</span>';
     }
 
@@ -4967,10 +4992,10 @@ function renderPropertiesGrid(properties) {
             <p class="text-[11px] text-slate-400 truncate flex items-center gap-1">
               <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#16c2a3] shrink-0"></i> ${escapeHtml(p.propertyAddress || 'Ubicación no especificada')}
             </p>
-            ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic opacity-85">"${escapeHtml(p.description)}"</p>` : ''}
+      ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic opacity-85">"${escapeHtml(p.description)}"</p>` : ''}
             <div class="flex items-center gap-3 text-[10px] text-slate-500 pt-1 border-t border-slate-900">
               <span>${escapeHtml(p.propertyType || 'Inmueble')}</span>
-              ${p.surfaceM2 ? `<span>· ${p.surfaceM2} m²</span>` : ''}
+      ${p.surfaceM2 ? `<span>· ${p.surfaceM2} m²</span>` : ''}
               <span class="text-emerald-400 font-bold">· Verificado CUCIS</span>
             </div>
           </div>
@@ -4983,17 +5008,17 @@ function renderPropertiesGrid(properties) {
             <option value="RESERVADO" ${p.status === 'RESERVADO' ? 'selected' : ''}>🟡 ${operation === 'VENTA' ? 'Seña / Reserva' : 'Reservado'}</option>
             <option value="${operation === 'VENTA' ? 'VENDIDO' : 'ALQUILADO'}" ${(p.status === 'ALQUILADO' || p.status === 'VENDIDO') ? 'selected' : ''}>🔴 ${operation === 'VENTA' ? 'Vendido' : 'Alquilado'}</option>
           </select>
-          
+      
           <div class="flex items-center gap-1.5 ml-auto">
             <button type="button" onclick="window.abrirModalEditarPropiedad('${p.id}')" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-[#16c2a3] border border-[#16c2a3]/30 rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 cursor-pointer" title="Editar datos">
               <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Editar
             </button>
 
-            ${operation === 'ALQUILER_TRADICIONAL' && p.status === 'DISPONIBLE' ? `
+      ${operation === 'ALQUILER_TRADICIONAL' && p.status === 'DISPONIBLE' ? `
               <button type="button" onclick="window.alquilarPropiedadDirecta('${p.id}')" class="px-2.5 py-2 bg-[#16c2a3] hover:bg-emerald-600 text-[#060913] rounded-lg text-[10px] font-black uppercase transition cursor-pointer flex items-center gap-1" title="Emitir Contrato">
                 <i data-lucide="file-plus" class="w-3.5 h-3.5"></i> Contrato
               </button>
-            ` : ''}
+        ` : ''}
 
             <button type="button" onclick="window.eliminarPropiedad('${p.id}')" class="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[10px] transition cursor-pointer" title="Eliminar inmueble">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -5001,10 +5026,10 @@ function renderPropertiesGrid(properties) {
           </div>
         </div>
       </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
 
-  if (window.lucide) window.lucide.createIcons();
+if (window.lucide) window.lucide.createIcons();
 }
 
 window.contactarColegaRed = async (propId) => {
@@ -5690,38 +5715,38 @@ function renderPortalGrid(properties) {
       opBadge = `
         <span class="inline-flex items-center gap-1.5 bg-[#060913] text-indigo-300 border border-indigo-500 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
           <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Venta
-        </span>`;
+      </span>`;
       priceSuffix = '';
     } else if (operation === 'ALQUILER_TEMPORAL') {
       opBadge = `
         <span class="inline-flex items-center gap-1.5 bg-[#060913] text-amber-300 border border-amber-500 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
           <span class="w-2 h-2 rounded-full bg-amber-400"></span> Temporal
-        </span>`;
+      </span>`;
       priceSuffix = '<span class="text-[10px] text-slate-400 font-normal"> / noche</span>';
     } else {
       opBadge = `
         <span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-[#16c2a3] text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
           <span class="w-2 h-2 rounded-full bg-[#16c2a3]"></span> Alquiler
-        </span>`;
+      </span>`;
       priceSuffix = '<span class="text-[10px] text-slate-400 font-normal"> / mes</span>';
     }
 
     const minScore = Number(p.minScore) || 0;
     const scoreBadge = minScore > 0 
-      ? `<span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-emerald-500 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-2xl">
+    ? `<span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-emerald-500 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-2xl">
            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> Score ${minScore}+
-         </span>`
-      : '';
+  </span>`
+  : '';
 
-    const photo = (p.photos && p.photos.length > 0) ? p.photos[0] : (p.mainPhoto || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&auto=format&fit=crop&q=60');
+  const photo = (p.photos && p.photos.length > 0) ? p.photos[0] : (p.mainPhoto || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&auto=format&fit=crop&q=60');
 
     // 🔒 En el Portal Público NUNCA se edita. Solo muestra la tarjeta interactiva y el botón de WhatsApp.
-    return `
+  return `
       <div class="bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden hover:border-[#16c2a3]/40 transition-all flex flex-col justify-between shadow-lg">
         <div onclick="window.abrirModalDetallePropiedad('${p.id}')" class="cursor-pointer group">
           <div class="relative h-44 w-full bg-slate-900 overflow-hidden">
             <img src="${photo}" alt="${escapeHtml(p.title)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-            
+    
             <div class="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap z-10">
               ${opBadge}
               ${scoreBadge}
@@ -5737,10 +5762,10 @@ function renderPortalGrid(properties) {
             <p class="text-[11px] text-slate-400 truncate flex items-center gap-1">
               <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#16c2a3] shrink-0"></i> ${escapeHtml(p.propertyAddress || 'Ubicación no especificada')}
             </p>
-            ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic opacity-85">"${escapeHtml(p.description)}"</p>` : ''}
+    ${p.description ? `<p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic opacity-85">"${escapeHtml(p.description)}"</p>` : ''}
             <div class="flex items-center gap-3 text-[10px] text-slate-500 pt-1 border-t border-slate-900">
               <span>${escapeHtml(p.propertyType || 'Inmueble')}</span>
-              ${p.surfaceM2 ? `<span>· ${p.surfaceM2} m²</span>` : ''}
+    ${p.surfaceM2 ? `<span>· ${p.surfaceM2} m²</span>` : ''}
               <span class="text-emerald-400 font-bold">· Verificado CUCIS</span>
             </div>
           </div>
@@ -5753,10 +5778,10 @@ function renderPortalGrid(properties) {
           </button>
         </div>
       </div>
-    `;
-  }).join('');
+  `;
+}).join('');
 
-  if (window.lucide) window.lucide.createIcons();
+if (window.lucide) window.lucide.createIcons();
 }
 
 window.iniciarConsultaPropiedad = async (propId) => {
@@ -5962,7 +5987,7 @@ document.getElementById('btn-nueva-propiedad')?.addEventListener('click', () => 
 // Apertura para EDITAR propiedad existente
 window.abrirModalEditarPropiedad = (propId) => {
   const prop = (cachedPortalProperties || []).find(p => p.id === propId) || 
-               (cachedProperties || []).find(p => p.id === propId);
+  (cachedProperties || []).find(p => p.id === propId);
   if (!prop) return;
 
   editingPropertyId = propId; // 👈 ASIGNA: Estamos editando este ID específico
@@ -6065,7 +6090,7 @@ window.generarPreviewPropiedad = () => {
             <span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-[#16c2a3] text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-2xl">
               <span class="w-2 h-2 rounded-full bg-[#16c2a3]"></span> ${op === 'VENTA' ? 'Venta' : (op === 'ALQUILER_TEMPORAL' ? 'Temporal' : 'Alquiler')}
             </span>
-            ${minScore > 0 ? `<span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-emerald-500 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-2xl"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> Score ${minScore}+</span>` : ''}
+      ${minScore > 0 ? `<span class="inline-flex items-center gap-1.5 bg-[#060913] text-white border border-emerald-500 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-2xl"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> Score ${minScore}+</span>` : ''}
           </div>
           <span class="absolute bottom-3 left-3 bg-slate-950/90 text-white font-black text-sm px-2.5 py-1 rounded-lg border border-slate-800">
             ${curr} ${price}${op === 'ALQUILER_TEMPORAL' ? ' / noche' : (op === 'VENTA' ? '' : ' / mes')}
@@ -6073,7 +6098,7 @@ window.generarPreviewPropiedad = () => {
         </div>
         <div class="p-4 space-y-2 text-left">
           <h4 class="font-bold text-white text-xs truncate">${escapeHtml(title)}</h4>
-          <p class="text-[11px] text-slate-400 truncate">📍 ${escapeHtml(`${street}, ${neighborhood}, ${city}`)}</p>
+      <p class="text-[11px] text-slate-400 truncate">📍 ${escapeHtml(`${street}, ${neighborhood}, ${city}`)}</p>
           <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic">"${escapeHtml(desc)}"</p>
           <div class="flex items-center gap-3 text-[10px] text-slate-500 pt-1 border-t border-slate-900">
             <span>${escapeHtml(type)}</span>
@@ -6089,4 +6114,223 @@ window.generarPreviewPropiedad = () => {
   const modalPreview = document.getElementById('modal-preview-property');
   modalPreview?.classList.remove('hidden');
   modalPreview?.classList.add('flex');
+};
+
+// Control de modales legales en la SPA (Texto Oficial Homologado)
+window.abrirModalLegal = function(tipo) {
+  const modal = document.getElementById('modal-legal');
+  const title = document.getElementById('modal-legal-title');
+  const body = document.getElementById('modal-legal-body');
+  if (!modal || !title || !body) return;
+
+  if (tipo === 'terminos') {
+    title.innerText = 'Términos y Condiciones · Propiedad Intelectual';
+    body.innerHTML = `
+      <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div>
+          <h4 class="font-bold text-white text-sm">Cláusula: Propiedad Intelectual y Marca Registrada</h4>
+        </div>
+      
+        <div>
+          <h5 class="font-semibold text-white">1. Signo Distintivo y Registro de Marca</h5>
+          <p class="mt-1">La denominación <b>INQUILIA</b>, sus isotipos, imagotipos, diseño de interfaces, grafismos y nombres de dominio asociados son propiedad exclusiva de Matías Usandivaras Marcó. El signo denominativo "INQUILIA" se encuentra en trámite regular de registro de marca ante el Instituto Nacional de la Propiedad Industrial (INPI) bajo las prescripciones de la Ley Nº 22.362, con solicitudes radicadas para:</p>
+          <ul class="list-disc pl-5 mt-1 space-y-1 text-slate-400">
+            <li><b>Clase 36 (Niza):</b> Servicios financieros, servicios de información financiera facilitada mediante acceso a base de datos informática, evaluación de solvencia crediticia y elaboración de informes crediticios locativos.</li>
+            <li><b>Clase 42 (Niza):</b> Software como servicio (SaaS), diseño, actualización y desarrollo de software para el sector inmobiliario, y alojamiento y almacenamiento electrónico de datos.</li>
+          </ul>
+          <p class="mt-1">Queda estrictamente prohibida la utilización total o parcial, reproducción, imitación, uso marcario o registro de nombres idénticos o confusamente similares por parte de usuarios o terceros sin autorización expresa, previa y por escrito de su titular.</p>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">2. Derechos sobre el Software, Código y Algoritmos</h5>
+          <p class="mt-1">La totalidad del software que compone la plataforma INQUILIA —incluyendo su código fuente, código objeto, estructuras de bases de datos, algoritmos de cálculo de scoring locativo, API endpoints, documentación técnica, textos explicativos y estilos visuales— está protegida por la <b>Ley Nº 11.723 de Propiedad Intelectual</b>.</p>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">3. Restricciones de Uso y Licencia</h5>
+          <p class="mt-1">El acceso a la plataforma otorga al usuario una licencia de uso limitada, revocable, no exclusiva e intransferible para la gestión y consulta de informes según su plan de contratación. Se prohíbe expresamente:</p>
+          <ul class="list-disc pl-5 mt-1 space-y-1 text-slate-400">
+            <li>Realizar ingeniería inversa, descompilar, desensamblar o intentar derivar el código fuente de cualquier componente de la plataforma.</li>
+            <li>Emplear técnicas de extracción automatizada de datos (screen scraping, crawling, bots) sobre los perfiles de inquilinos, reportes de solvencia o contratos generados.</li>
+            <li>Revender, sublicenciar, comercializar o redistribuir masivamente los reportes o datos obtenidos sin contar con acuerdo comercial específico.</li>
+          </ul>
+        </div>
+      </div>
+    `;
+  } else if (tipo === 'privacidad') {
+    title.innerText = 'Políticas de Privacidad y Tratamiento de Datos';
+    body.innerHTML = `
+      <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div>
+          <h4 class="font-bold text-white text-sm">Cláusula: Protección de Datos Personales y Hábeas Data</h4>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">1. Marco Normativo y Registro Oficial</h5>
+          <p class="mt-1">El tratamiento de datos personales efectuado a través de la plataforma INQUILIA se rige estrictamente por la <b>Ley Nacional Nº 25.326 de Protección de Datos Personales</b>, su Decreto Reglamentario Nº 1558/2001 y las disposiciones emitidas por la Agencia de Acceso a la Información Pública (AAIP).</p>
+          <p class="mt-1">El titular y responsable del tratamiento de los datos es <b>Matías Usandivaras Marcó (CUIT: 20-28633912-4)</b>, debidamente inscripto como Responsable en el Registro Nacional de Bases de Datos Personales bajo el identificador oficial <b>RL-2026-105698331-APN-DNPDP#AAIP</b>, encontrándose la base de datos de la plataforma formalmente registrada bajo el expediente electrónico <b>EX-2026-105724221- -APN-DNPDP#AAIP</b>.</p>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">2. Finalidad del Tratamiento y Legitimación</h5>
+          <p class="mt-1">Los datos recabados son tratados con la exclusiva finalidad de evaluar la solvencia económica, capacidad de pago y riesgo locativo de los postulantes a contratos de locación, así como emitir scoring locativo y reportes de cumplimiento patrimonial para inmobiliarias, corredores inmobiliarios matriculados y propietarios locadores adheridos. El tratamiento de información crediticia y patrimonial se encuadra en los términos del <b>Artículo 26 de la Ley Nº 25.326</b>.</p>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">3. Consentimiento y Cesión de Información</h5>
+          <p class="mt-1">El usuario, al postularse o registrar sus datos en la plataforma, presta su consentimiento expreso, previo e informado (Artículos 5 y 11 de la Ley Nº 25.326) para que INQUILIA:</p>
+          <ul class="list-disc pl-5 mt-1 space-y-1 text-slate-400">
+            <li>Valide y cruce su información de identidad y solvencia financiera ante fuentes de acceso público irrestricto, burós autorizados y bases de datos financieras o crediticias.</li>
+            <li>Comparta los informes de riesgo, validación de antecedentes y scoring crediticio únicamente con los locadores, administradores de consorcios o intermediarios inmobiliarios autorizados para el contrato específico en evaluación.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">4. Plazos de Conservación y Supresión</h5>
+          <p class="mt-1">La información relativa al cumplimiento o incumplimiento de obligaciones locativas se conservará por un plazo máximo de <b>cinco (5) años</b> a partir del hecho generador (Art. 26 inc. 4º Ley Nº 25.326). En caso de deudas u obligaciones canceladas, el registro se mantendrá por un período no mayor a <b>dos (2) años</b> desde la acreditación fehaciente de la cancelación.</p>
+        </div>
+
+        <div>
+          <h5 class="font-semibold text-white">5. Ejercicio de Derechos ARCO</h5>
+          <p class="mt-1">El titular podrá ejercer sus derechos de acceso, rectificación, actualización y supresión enviando comunicación formal a través del correo legal establecido en la plataforma, acreditando identidad con copia digital de su DNI. INQUILIA responderá dentro de los diez (10) días corridos para acceso, y dentro de los cinco (5) días hábiles para rectificación o supresión (Arts. 14 y 16 Ley Nº 25.326).</p>
+        </div>
+
+        <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-xl">
+          <h5 class="font-semibold text-[#16c2a3] text-[11px] uppercase">6. Leyenda Legal Obligatoria (Res. AAIP Nº 14/2018)</h5>
+          <p class="mt-1 text-slate-300 text-[11px] italic leading-normal">
+            «El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley Nº 25.326. La AGENCIA DE ACCESO A LA INFORMACIÓN PÚBLICA, en su carácter de Órgano de Control de la Ley Nº 25.326, tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos por incumplimiento de las normas vigentes en materia de protección de datos personales.»
+          </p>
+        </div>
+      </div>
+    `;
+  } else if (tipo === 'rectificacion') {
+    title.innerText = 'Derecho de Hábeas Data · Procedimiento en Plataforma';
+    body.innerHTML = `
+      <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div>
+          <h4 class="font-bold text-white text-sm">Ejercicio de Derechos ARCO (Ley 25.326 Art. 16)</h4>
+          <p class="mt-1">Conforme a la normativa nacional, todo ciudadano tiene derecho a que sean rectificados, actualizados o suprimidos sus datos cuando fueren erróneos, inexactos o desactualizados.</p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl space-y-2">
+          <h5 class="font-bold text-white">Procedimiento Inmediato en INQUILIA:</h5>
+          <ol class="list-decimal pl-5 space-y-1.5 text-slate-300">
+            <li>Ingresá con tu cuenta al menú <b>Contratos</b>.</li>
+            <li>Ubicá el legajo correspondiente y presioná <b>'Rectificar Antecedente'</b>.</li>
+            <li>Ingresá tu declaración o adjuntá la constancia de cancelación.</li>
+            <li>La plataforma asentará un <b>bloqueo cautelar</b> sobre la anotación cuestionada mientras transcurre el plazo legal perentorio de <b>5 días hábiles</b> para su resolución definitiva.</li>
+          </ol>
+        </div>
+
+        <div class="p-3 bg-[#16c2a3]/10 border border-[#16c2a3]/20 rounded-xl text-[11px] text-slate-300">
+          <b>Plazos legales de resolución:</b> Diez (10) días corridos para pedidos de acceso informativo integral y cinco (5) días hábiles para subsanaciones, rectificaciones o supresiones documentales (Arts. 14 y 16 Ley 25.326).
+        </div>
+      </div>
+    `;
+  }
+
+  modal.classList.remove('hidden');
+};
+
+window.cerrarModalLegal = function() {
+  const modal = document.getElementById('modal-legal');
+  if (modal) modal.classList.add('hidden');
+};
+
+// ============================================================================
+// BOTÓN DE ARREPENTIMIENTO / BAJA DE SERVICIO (LEY 24.240)
+// ============================================================================
+window.abrirModalBaja = function() {
+  const modal = document.getElementById('modal-baja');
+  if (modal) modal.classList.remove('hidden');
+};
+
+window.cerrarModalBaja = function() {
+  const modal = document.getElementById('modal-baja');
+  if (modal) modal.classList.add('hidden');
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const formBaja = document.getElementById('form-baja');
+  if (formBaja) {
+    formBaja.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-baja');
+      const originalText = btn.innerText;
+      btn.innerText = "Procesando Baja...";
+      btn.disabled = true;
+
+      try {
+        const dni = document.getElementById('baja-dni').value.replace(/\D/g, "");
+        const email = document.getElementById('baja-email').value.trim();
+        
+        const { getFunctions, httpsCallable } = await import("firebase/functions");
+        const functions = getFunctions();
+        const solicitarBajaServicio = httpsCallable(functions, 'solicitarBajaServicio');
+        
+        const res = await solicitarBajaServicio({ dni, email });
+        
+        alert(res.data.message || "Solicitud procesada correctamente.");
+        cerrarModalBaja();
+        formBaja.reset();
+      } catch (error) {
+        alert("Atención: " + (error.message || "No se pudo procesar la baja automáticamente. Intentá más tarde."));
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+      }
+    });
+  }
+});
+
+// ============================================================================
+// LÓGICA DE CÓDIGOS PROMOCIONALES (FRONTEND)
+// ============================================================================
+let appliedPromoCode = null;
+
+window.validarCodigoPromo = async function() {
+  const inputEl = document.getElementById('promo-code-input');
+  const btnEl = document.getElementById('btn-apply-promo');
+  const msgEl = document.getElementById('promo-status-msg');
+  
+  if (!inputEl) return;
+  const code = inputEl.value.trim().toUpperCase();
+
+  if (!code) {
+    if (msgEl) {
+      msgEl.innerText = "Ingresá un código primero.";
+      msgEl.className = "absolute -bottom-6 left-0 w-full text-center text-[9px] font-bold text-rose-400 mt-1 block";
+      msgEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (btnEl) {
+    btnEl.innerText = "...";
+    btnEl.disabled = true;
+  }
+  if (msgEl) msgEl.classList.add('hidden');
+
+  try {
+    // Guardamos el código ingresado para enviarlo al momento de procesar el pago o bypass
+    appliedPromoCode = code;
+
+    if (msgEl) {
+      msgEl.innerText = `✓ Código "${code}" aplicado. Seleccioná tu plan.`;
+      msgEl.className = "absolute -bottom-6 left-0 w-full text-center text-[10px] font-black text-emerald-400 mt-1 block";
+      msgEl.classList.remove('hidden');
+    }
+    if (inputEl) {
+      inputEl.classList.add('border-emerald-500/50', 'bg-emerald-950/20');
+    }
+    if (btnEl) btnEl.innerText = "OK";
+
+  } catch (error) {
+    console.error("Error al validar código:", error);
+  } finally {
+    if (btnEl && btnEl.innerText === "...") {
+      btnEl.innerText = "Aplicar";
+    }
+    if (btnEl) btnEl.disabled = false;
+  }
 };
