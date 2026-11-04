@@ -133,9 +133,9 @@ function renderRebuttalsBlock(rebuttals) {
 }
 
 // ============================================================================
-// INICIALIZACIÓN DEL DOM Y NAVEGACIÓN
+// INICIALIZACIÓN DEL DOM Y NAVEGACIÓN (A prueba de ES Modules)
 // ============================================================================
-document.addEventListener("DOMContentLoaded", () => {
+function initInquiliaApp() {
   if (window.lucide) window.lucide.createIcons();
 
   const sidebar = document.getElementById('sidebar');
@@ -229,7 +229,14 @@ document.addEventListener("DOMContentLoaded", () => {
     loadMarketReferencePrices();
     switchTab('home');
   }
-});
+}
+
+// Ejecución segura ante carga de módulos
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initInquiliaApp);
+} else {
+  initInquiliaApp();
+}
 
 function setupPasswordToggles() {
   const toggleLogin = document.getElementById('toggle-login-password');
@@ -263,117 +270,126 @@ function switchTab(viewName) {
 
     const titleMap = { 
       'search': 'Consultar perfil', 'history': 'Historial', 'certify': 'Certificados',
-      'reports': 'Reportes', 'expirations': 'Vencimientos', 'properties': 'Inventario de Propiedades','leads': 'Interesados / Leads', 'contracts': 'Contratos',
+      'reports': 'Reportes', 'expirations': 'Vencimientos', 'properties': 'Inventario de Propiedades', 'leads': 'Interesados / Leads', 'contracts': 'Contratos',
       'account': 'Planes y Créditos', 'settings': 'Configuración', 'agency-catalog': 'Catálogo Inmobiliario Oficial'
     };
     const targetLabel = titleMap[viewName] || 'este módulo';
 
     showToast("Acceso Restringido", `Debés iniciar sesión con tu DNI para acceder a ${targetLabel}.`, "error");
-    switchTab('auth');
+    switchTab('auth'); // Ahora sí encuentra la función localmente sin error
     return;
   }
 
+  // 1. Ocultar todas las vistas de forma segura
   const views = ['home', 'auth', 'portal', 'search', 'certify', 'history', 'account', 'settings', 'reports', 'expirations', 'properties', 'leads', 'contracts', 'onboarding', 'verify', 'agency-catalog'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.classList.add('hidden');
   });
 
+  // 2. Mostrar la vista seleccionada
   const targetView = document.getElementById(`view-${viewName}`);
   if (targetView) {
     targetView.classList.remove('hidden');
 
-    // ✅ CORRECTO: Va aquí afuera, se evalúa una sola vez
-    if (viewName === 'properties') {
-      const isAgency = activeContext === 'AGENCY_OWNER' || activeContext === 'AGENCY_EMPLOYEE';
-      if (!isAgency) {
-        showToast("Módulo Corporativo", "La gestión de inventario y cartera inmobiliaria es exclusiva para corredores matriculados y agentes.", "error");
-        switchTab('home');
-        return;
-      }
-      if (typeof loadPropertiesView === 'function' && currentUser) {
-        loadPropertiesView(currentUser);
-      }
-    }
-
-    if (viewName === 'leads') {
-      const isAgency = activeContext === 'AGENCY_OWNER' || activeContext === 'AGENCY_EMPLOYEE';
-      if (!isAgency) {
-        showToast("Módulo Corporativo", "La gestión de postulantes es exclusiva para corredores matriculados y agentes.", "error");
-        switchTab('home');
-        return;
-      }
-      if (typeof loadLeadsView === 'function') {
-        loadLeadsView(currentUser);
-      }
-    }
-
-    if (viewName === 'settings' && currentUser) {
-      const userRef = doc(db, "users", currentUser.uid);
-      getDoc(userRef).then(snap => {
-        let fallbackDni = '';
-        if (currentUser.email && currentUser.email.startsWith('dni_')) {
-          fallbackDni = currentUser.email.replace('dni_', '').split('@')[0];
+    // 3. Ejecutores seguros por módulo
+    try {
+      if (viewName === 'properties') {
+        const isAgency = activeContext === 'AGENCY_OWNER' || activeContext === 'AGENCY_EMPLOYEE';
+        if (!isAgency) {
+          showToast("Módulo Corporativo", "La gestión de inventario y cartera inmobiliaria es exclusiva para corredores matriculados y agentes.", "error");
+          switchTab('home');
+          return;
         }
-        const data = snap.exists() ? snap.data() : { dni: fallbackDni, roles: ['LANDLORD'] };
-        loadSettingsView(currentUser, data);
-        loadAccountView(currentUser);
-      });
-    }
+        if (typeof loadPropertiesView === 'function' && currentUser) {
+          loadPropertiesView(currentUser);
+        }
+      }
 
-    if (viewName === 'certify' && currentUser) {
-      loadCertifyPendingContracts(currentUser);
-      const ownerDniInput = document.getElementById('cert-owner-dni');
-      if (ownerDniInput) {
-        getDoc(doc(db, "users", currentUser.uid)).then(snap => {
-          if (snap.exists()) {
-            const uData = snap.data();
-            const cleanDni = uData.dni ? String(uData.dni).replace(/\D/g, '') : '';
-            if (activeContext === 'LANDLORD') {
-              ownerDniInput.value = cleanDni;
-              ownerDniInput.readOnly = true;
-              ownerDniInput.classList.add('bg-slate-900/50', 'text-slate-400');
-            } else {
-              ownerDniInput.readOnly = false;
-              ownerDniInput.classList.remove('bg-slate-900/50', 'text-slate-400');
-              if (ownerDniInput.value === cleanDni) {
-                ownerDniInput.value = '';
-              }
-            }
+      if (viewName === 'leads') {
+        const isAgency = activeContext === 'AGENCY_OWNER' || activeContext === 'AGENCY_EMPLOYEE';
+        if (!isAgency) {
+          showToast("Módulo Corporativo", "La gestión de postulantes es exclusiva para corredores matriculados y agentes.", "error");
+          switchTab('home');
+          return;
+        }
+        if (typeof loadLeadsView === 'function') {
+          loadLeadsView(currentUser);
+        }
+      }
+
+      if (viewName === 'settings' && currentUser) {
+        const userRef = doc(db, "users", currentUser.uid);
+        getDoc(userRef).then(snap => {
+          let fallbackDni = '';
+          if (currentUser.email && currentUser.email.startsWith('dni_')) {
+            fallbackDni = currentUser.email.replace('dni_', '').split('@')[0];
           }
+          const data = snap.exists() ? snap.data() : { dni: fallbackDni, roles: ['LANDLORD'] };
+          loadSettingsView(currentUser, data);
+          loadAccountView(currentUser);
         });
       }
-    }
 
-    if (viewName === 'home') {
-      loadMarketReferencePrices();
-    }
+      if (viewName === 'certify' && currentUser) {
+        loadCertifyPendingContracts(currentUser);
+        const ownerDniInput = document.getElementById('cert-owner-dni');
+        if (ownerDniInput) {
+          getDoc(doc(db, "users", currentUser.uid)).then(snap => {
+            if (snap.exists()) {
+              const uData = snap.data();
+              const cleanDni = uData.dni ? String(uData.dni).replace(/\D/g, '') : '';
+              if (activeContext === 'LANDLORD') {
+                ownerDniInput.value = cleanDni;
+                ownerDniInput.readOnly = true;
+                ownerDniInput.classList.add('bg-slate-900/50', 'text-slate-400');
+              } else {
+                ownerDniInput.readOnly = false;
+                ownerDniInput.classList.remove('bg-slate-900/50', 'text-slate-400');
+                if (ownerDniInput.value === cleanDni) {
+                  ownerDniInput.value = '';
+                }
+              }
+            }
+          });
+        }
+      }
 
-    if (viewName === 'portal' && currentUser) {
-      loadPortalView();
-    }
+      if (viewName === 'home') {
+        loadMarketReferencePrices();
+      }
 
-    if (viewName === 'history' && currentUser) {
-      loadHistoryView(currentUser);
-    }
+      if (viewName === 'portal') {
+        loadPortalView();
+      }
 
-    if (viewName === 'account' && currentUser) {
-      loadAccountView(currentUser);
-    }
+      if (viewName === 'history' && currentUser) {
+        loadHistoryView(currentUser);
+      }
 
-    if (viewName === 'contracts' && currentUser) {
-      loadContractsView(currentUser);
-    }
+      if (viewName === 'account' && currentUser) {
+        loadAccountView(currentUser);
+      }
 
-    if (viewName === 'reports' && currentUser) {
-      loadReportsView(currentUser);
-    }
+      if (viewName === 'contracts') {
+        if (typeof loadContractsView === 'function') {
+          loadContractsView(currentUser || auth.currentUser);
+        }
+      }
 
-    if (viewName === 'expirations' && currentUser) {
-      loadExpirationsView(currentUser);
+      if (viewName === 'reports' && currentUser) {
+        loadReportsView(currentUser);
+      }
+
+      if (viewName === 'expirations' && currentUser) {
+        loadExpirationsView(currentUser);
+      }
+    } catch (err) {
+      console.warn("Aviso en renderizado de vista:", err);
     }
   }
 
+  // 4. Actualizar título superior de la barra
   const topTitle = document.getElementById('topbar-title');
   if (topTitle) {
     const titleMap = { 
@@ -400,6 +416,7 @@ function switchTab(viewName) {
   if (window.lucide) window.lucide.createIcons();
 }
 
+// Exposición correcta al objeto global de la ventana
 window.switchTab = switchTab;
 
 function isPackExpired(expiresAtField) {
@@ -3074,7 +3091,7 @@ window.setContractsSubTab = (subTab) => {
   if (currentUser) loadContractsView(currentUser);
 };
 
-async function loadContractsView(user) {
+window.loadContractsView = async function(user) {
   const tableBody = document.getElementById('contracts-table-body');
   const countEl = document.getElementById('contracts-total-count');
   const monthsEl = document.getElementById('contracts-total-months');
@@ -3449,6 +3466,8 @@ async function loadReportsView(user) {
   const barLow = document.getElementById('rep-bar-low');
 
   const alertsContainer = document.getElementById('rep-alerts-container');
+  
+  // ✅ ESCUDO DE PROTECCIÓN: Si no estamos en la vista de reportes, salimos sin romper nada
   if (!totalCanonEl) return;
 
   try {
@@ -3546,46 +3565,49 @@ async function loadReportsView(user) {
     const pctMed = Math.round((countMed / total) * 100);
     const pctLow = Math.round((countLow / total) * 100);
 
-    totalCanonEl.innerText = `$${sumCanon.toLocaleString('es-AR')}`;
-    avgScoreEl.innerText = `${avgScore} / 100`;
-    complianceEl.innerText = `${complianceRate}%`;
-    totalDebtEl.innerText = `$${sumDebt.toLocaleString('es-AR')}`;
-    totalTenantsEl.innerText = `${total} contrato(s) evaluados`;
+    // ✅ Actualizaciones seguras con verificación condicional opcional
+    if (totalCanonEl) totalCanonEl.innerText = `$${sumCanon.toLocaleString('es-AR')}`;
+    if (avgScoreEl) avgScoreEl.innerText = `${avgScore} / 100`;
+    if (complianceEl) complianceEl.innerText = `${complianceRate}%`;
+    if (totalDebtEl) totalDebtEl.innerText = `$${sumDebt.toLocaleString('es-AR')}`;
+    if (totalTenantsEl) totalTenantsEl.innerText = `${total} contrato(s) evaluados`;
 
-    countHighEl.innerText = `${countHigh} (${pctHigh}%)`;
-    countMedEl.innerText = `${countMed} (${pctMed}%)`;
-    countLowEl.innerText = `${countLow} (${pctLow}%)`;
+    if (countHighEl) countHighEl.innerText = `${countHigh} (${pctHigh}%)`;
+    if (countMedEl) countMedEl.innerText = `${countMed} (${pctMed}%)`;
+    if (countLowEl) countLowEl.innerText = `${countLow} (${pctLow}%)`;
 
-    barHigh.style.width = `${pctHigh}%`;
-    barMed.style.width = `${pctMed}%`;
-    barLow.style.width = `${pctLow}%`;
+    if (barHigh) barHigh.style.width = `${pctHigh}%`;
+    if (barMed) barMed.style.width = `${pctMed}%`;
+    if (barLow) barLow.style.width = `${pctLow}%`;
 
-    if (debtAlerts.length === 0) {
-      alertsContainer.innerHTML = `
-        <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-emerald-400 text-xs font-bold">
-          ✓ Cartera 100% al día: no se registran deudas activas ni moras técnicas en este perfil.
-        </div>
-      `;
-    } else {
-      alertsContainer.innerHTML = debtAlerts.map(c => `
-        <div class="bg-slate-950/70 border border-slate-800 p-3.5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-white text-xs">${escapeHtml(c.name || 'Sin Nombre')}</span>
-              <span class="text-[10px] text-slate-400 font-mono">DNI: ${c.dni || c.tenantDni}</span>
+    if (alertsContainer) {
+      if (debtAlerts.length === 0) {
+        alertsContainer.innerHTML = `
+          <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-emerald-400 text-xs font-bold">
+            ✓ Cartera 100% al día: no se registran deudas activas ni moras técnicas en este perfil.
+          </div>
+        `;
+      } else {
+        alertsContainer.innerHTML = debtAlerts.map(c => `
+          <div class="bg-slate-950/70 border border-slate-800 p-3.5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-xs">${escapeHtml(c.name || 'Sin Nombre')}</span>
+                <span class="text-[10px] text-slate-400 font-mono">DNI: ${c.dni || c.tenantDni}</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                ${c.behavior?.late || 0} meses con mora técnica · Estado: <span class="text-slate-300 font-semibold">${escapeHtml(c.behavior?.conservation || 'Normal')}</span>
+              </p>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">
-              ${c.behavior?.late || 0} meses con mora técnica · Estado: <span class="text-slate-300 font-semibold">${escapeHtml(c.behavior?.conservation || 'Normal')}</span>
-            </p>
+            <div class="text-left sm:text-right">
+              <span class="text-xs font-black ${c.behavior?.debtAmount > 0 ? 'text-rose-400' : 'text-amber-400'} block">
+                $${Number(c.behavior?.debtAmount || 0).toLocaleString('es-AR')} pendiente
+              </span>
+              <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Acción de Cobranza</span>
+            </div>
           </div>
-          <div class="text-left sm:text-right">
-            <span class="text-xs font-black ${c.behavior?.debtAmount > 0 ? 'text-rose-400' : 'text-amber-400'} block">
-              $${Number(c.behavior?.debtAmount || 0).toLocaleString('es-AR')} pendiente
-            </span>
-            <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Acción de Cobranza</span>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     }
 
     if (window.lucide) window.lucide.createIcons();
